@@ -18,10 +18,15 @@ PREREQUISITES:
   - git
   - ~2GB free disk (model weights + ESC-50 dataset)
 
+  If you don't have Python 3.10:
+    macOS (Homebrew):  brew install python@3.10
+    Ubuntu/Debian:     sudo apt install python3.10 python3.10-venv
+    Colab:             Already has it — skip venv steps, pip install directly.
+
 SETUP (5 minutes):
 
   1. Clone the repo:
-       git clone <REPO_URL>
+       git clone git@github.com:yuvalanavi/PETL-AST-Project.git
        cd PETL-AST-Project
 
   2. Create and activate a virtual environment:
