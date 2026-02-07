@@ -1,0 +1,28 @@
+# Data and outputs (root-level only, not src/data/)
+/data/
+/outputs/
+*.pt
+*.pth
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Wandb
+wandb/

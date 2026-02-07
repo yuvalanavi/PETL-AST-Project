@@ -1,0 +1,25 @@
+---
+description: Coding conventions for PETL-AST project
+alwaysApply: true
+---
+
+# Coding Rules
+
+- **Python 3.10** — hard requirement from course. No 3.11+ features.
+- All hyperparameters must come from `configs/esc50_conformer.yaml`. Never hardcode model params, learning rates, dimensions, etc. in Python files.
+- Type hints on all function signatures. Docstring on every class and public function.
+- Imports order: stdlib → third-party → local, blank line between groups.
+- `train.py` and `evaluation.py` at project root must be standalone CLI scripts (argparse). They import from `src/`.
+- Keep code simple and explicit — the professor may ask any team member to explain any line.
+
+# Architecture Constraints (easy to violate accidentally)
+
+- The Conformer Adapter forward pass must replicate the reference code's behavior: `LayerNorm` is instantiated and its params are trained, but its output is **overwritten** in forward (the raw input is transposed instead). Do NOT "fix" this — it matches the paper's reported results.
+- Unfrozen params in Pfeiffer config: adapter modules + `layernorm_after` per layer + final `layernorm` + classification head.
+- Adapter placement for Pfeiffer: parallel to the **FFN** block (not MHSA). This follows the reference code, which contradicts the paper text.
+- Adapter uses **no residual connection** in parallel placement.
+
+# Key Reference
+
+- Full execution plan and technical decisions: `docs/planning/execution-plan.md`
+- Config file: `configs/esc50_conformer.yaml`

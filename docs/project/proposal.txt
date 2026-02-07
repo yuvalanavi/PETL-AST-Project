@@ -1,0 +1,16 @@
+Hi Tal,
+We would like to submit our paper choice for the final project.
+Paper: "Parameter-Efficient Transfer Learning of Audio Spectrogram Transformers" (Cappellazzo et al., 2024) 
+Link: https://arxiv.org/abs/2312.03694
+Project Specs:
+Task: Environmental Sound Classification.
+Dataset: ESC-50 (50 classes, 2,000 clips, ~600MB).
+Model: Audio Spectrogram Transformer (AST) (Pre-trained on ImageNet/AudioSet).
+Implementation Plan:
+Architecture: We will implement the paper's novel "Conformer Adapter" modules and inject them into the frozen AST backbone .
+Training: We will write the training script to fine-tune these adapter parameters (PETL) while keeping the backbone frozen, ensuring feasibility on standard compute.
+Team Members:
+Yuval Anavi - 318677622
+Eden Avrahami - 207106444
+Guy Yaffe - 207253980
+Tom Nouri - 209402833
