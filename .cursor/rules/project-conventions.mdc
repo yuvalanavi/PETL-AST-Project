@@ -1,25 +1,28 @@
 ---
-description: Coding conventions for PETL-AST project
+description: Coding conventions for PETL-AST project (authors' codebase)
 alwaysApply: true
 ---
 
-# Coding Rules
+# Project Context
 
-- **Python 3.10** — hard requirement from course. No 3.11+ features.
-- All hyperparameters must come from `configs/esc50_conformer.yaml`. Never hardcode model params, learning rates, dimensions, etc. in Python files.
-- Type hints on all function signatures. Docstring on every class and public function.
-- Imports order: stdlib → third-party → local, blank line between groups.
-- `train.py` and `evaluation.py` at project root must be standalone CLI scripts (argparse). They import from `src/`.
-- Keep code simple and explicit — the professor may ask any team member to explain any line.
+We are using the published codebase from https://github.com/umbertocappellazzo/PETL_AST to reproduce the Conformer Adapter results on ESC-50. The core code under `src/`, `dataset/`, `utils/`, `hparams/`, and `main.py` is the **authors' code**. We modify minimally and document every change.
 
-# Architecture Constraints (easy to violate accidentally)
+# Rules
 
-- The Conformer Adapter forward pass must replicate the reference code's behavior: `LayerNorm` is instantiated and its params are trained, but its output is **overwritten** in forward (the raw input is transposed instead). Do NOT "fix" this — it matches the paper's reported results.
-- Unfrozen params in Pfeiffer config: adapter modules + `layernorm_after` per layer + final `layernorm` + classification head.
-- Adapter placement for Pfeiffer: parallel to the **FFN** block (not MHSA). This follows the reference code, which contradicts the paper text.
-- Adapter uses **no residual connection** in parallel placement.
+- **Python 3.10** — hard requirement from course.
+- **Minimize changes to authors' code.** If you must modify, add a comment `# MODIFIED: <reason>` above the change. This makes it easy to diff against the original and document in the report.
+- When adding NEW files (like `evaluation.py`), follow the authors' style: no type hints (they don't use them), same import patterns, same naming conventions.
+- The training command for our experiment:
+  `python main.py --data_path 'data' --dataset_name 'ESC-50' --method 'adapter' --adapter_block 'conformer' --adapter_type 'Pfeiffer' --seq_or_par 'parallel' --reduction_rate_adapter 96 --kernel_size 8 --apply_residual False --is_AST True`
+- Hyperparameters live in `hparams/train.yaml`. Don't duplicate them elsewhere.
+- The professor may ask any team member to explain any function. Keep code understandable.
+
+# Known Issues (do NOT "fix")
+
+- `Conformer_adapter.forward()`: LayerNorm output is computed then overwritten (`out = self.lnorm(x)` then `out = x.transpose(-1, -2)`). This is in the published code and produced the reported results.
+- Pfeiffer config: paper says "parallel to MHSA" but code places adapter parallel to FFN. Follow the code.
 
 # Key Reference
 
-- Full execution plan and technical decisions: `docs/planning/execution-plan.md`
-- Config file: `configs/esc50_conformer.yaml`
+- Execution plan: `docs/planning/execution-plan.md`
+- Authors' hyperparams: `hparams/train.yaml`

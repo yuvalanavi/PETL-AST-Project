@@ -1,9 +1,16 @@
 # PETL-AST Project: 2-Day Sprint Execution Plan
 
 **Paper**: "Parameter-Efficient Transfer Learning of Audio Spectrogram Transformers" (Cappellazzo et al., 2024)
-**Scope**: Conformer Adapter (Pfeiffer, parallel) on frozen AST, evaluated on ESC-50
+**Scope**: Reproduce the Conformer Adapter results on ESC-50 using the authors' code
 **Team**: Yuval, Eden, Guy, Tom
 **Compute**: Single consumer GPU (Colab T4 or similar)
+**Authors' repo**: https://github.com/umbertocappellazzo/PETL_AST
+
+---
+
+## Approach
+
+We use the authors' published codebase as our foundation. We run their code to train the Conformer Adapter on ESC-50, reproduce the reported results (~88.30% accuracy), and document the process. Per course guidelines, this is expected — we must understand the code, train it ourselves, cite what's theirs, and document challenges.
 
 ---
 
@@ -11,280 +18,165 @@
 
 ```
 PETL-AST-Project/
-├── .cursor/
-│   └── rules/
-│       └── project-conventions.mdc   # Coding agent rules
-├── configs/
-│   └── esc50_conformer.yaml          # All hyperparameters (single source of truth)
-├── data/                             # .gitignored — downloaded ESC-50 goes here
+├── .cursor/rules/                    # Our: Cursor agent rules
 ├── docs/
-│   ├── planning/                     # This plan and sprint tracking
-│   └── project/                      # Paper, guidelines, proposal
-├── outputs/                          # .gitignored — checkpoints, logs, plots
-├── samples/                          # Audio samples for submission (from train/val)
-├── src/
-│   ├── __init__.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── conformer_adapter.py      # Conformer Adapter nn.Module
-│   │   └── ast_with_adapter.py       # AST wrapper: loads pretrained, injects adapters, freezes
-│   ├── data/
-│   │   ├── __init__.py
-│   │   └── esc50_dataset.py          # ESC-50 Dataset class (5-fold CV aware)
-│   └── utils/
-│       ├── __init__.py
-│       ├── engine.py                 # train_one_epoch, eval_one_epoch
-│       └── visualization.py          # Convergence plot generation
-├── train.py                          # Main training entry point (standalone, argparse)
-├── evaluation.py                     # Standalone evaluation script
-├── download_data.sh                  # One-liner to download + extract ESC-50
-├── requirements.txt                  # Pinned deps, Python 3.10
-├── readme.txt                        # Submission README with exact run instructions
+│   ├── planning/                     # Our: this plan
+│   └── project/                      # Our: paper, guidelines, proposal
+├── data/                             # Gitignored — ESC-50 dataset
+├── outputs/                          # Gitignored — checkpoints, logs
+├── samples/                          # Our: audio samples for submission
+│
+│  --- Authors' code (from github.com/umbertocappellazzo/PETL_AST) ---
+│
+├── src/                              # Authors': model implementations
+│   ├── AST.py                        #   Base AST (full FT, linear probing)
+│   ├── AST_adapters.py               #   ★ Bottleneck + Conformer adapters
+│   ├── AST_LoRA.py                   #   LoRA implementation
+│   ├── AST_prompt_tuning.py          #   Prompt/prefix tuning
+│   ├── MoA.py                        #   Mixture of Adapters
+│   └── Wav2Vec_adapter.py            #   Wav2Vec 2.0 adapters
+├── dataset/                          # Authors': dataset classes
+│   ├── esc_50.py                     #   ★ ESC-50 (our focus)
+│   ├── fluentspeech.py               #   FSC
+│   ├── google_speech_commands_v2.py  #   GSC
+│   ├── urban_sound_8k.py             #   US8K
+│   └── iemocap.py                    #   IEMOCAP
+├── utils/
+│   └── engine.py                     # Authors': train/eval one epoch
+├── hparams/
+│   └── train.yaml                    # Authors': all hyperparameters
+├── main.py                           # Authors': main training entry point
+│
+│  --- Our additions ---
+│
+├── evaluation.py                     # Our: standalone eval script (required by course)
+├── download_data.sh                  # Our: ESC-50 download script
+├── requirements.txt                  # Updated from authors' (modern versions)
+├── readme.txt                        # Our: submission README
 └── .gitignore
 ```
 
-**Design rationale**:
-- `train.py` and `evaluation.py` live at the root as required by the course guidelines.
-- All reusable code lives under `src/` to keep scripts thin.
-- `configs/` holds YAML so hyperparameters are never hardcoded in Python.
-- `data/` and `outputs/` are gitignored to keep the repo lightweight.
-
 ---
 
-## 2. Critical Technical Decisions (Locked In)
+## 2. Key Files to Understand (priority order)
 
-These are extracted from the paper's Section 3.1 and the reference implementation. **Do not deviate** unless a decision is explicitly revisited.
+Everyone on the team must be able to explain these. The professor may ask.
 
-| Parameter | Value | Source |
+### Must understand deeply:
+
+| File | What it does | Key things to know |
 |---|---|---|
-| Pre-trained model | `MIT/ast-finetuned-audioset-10-10-0.4593` | Paper §3.1, HuggingFace |
-| Hidden dim (d) | 768 | AST architecture |
-| Num layers | 12 | AST architecture |
-| Adapter config | **Pfeiffer** (adapter parallel to MHSA only) | Paper Table 1 — best for audio tasks |
-| Adapter placement | **Parallel** (no residual) | Paper §3.1 + reference code |
-| Adapter block | **Conformer** | Our project scope |
-| Reduction rate (RR) | 96 → bottleneck dim r = 8 | Paper §3.1 |
-| Kernel size (k) | 8 | Paper §3.3 — optimal for ESC-50 |
-| Expected trainable params | ~271K (0.29% of 85.5M) | Paper Table 1 |
-| Optimizer | AdamW (betas=0.9,0.98, eps=1e-6) | Reference code |
-| Learning rate | 0.005 | Paper §3.1 |
-| Weight decay | 0.1 | Paper §3.1 |
-| Scheduler | CosineAnnealingLR (step-level) | Reference code |
-| Epochs | 50 | Reference hparams/train.yaml |
-| Batch size | 32 | Reference hparams/train.yaml |
-| Max spectrogram length | 500 | Reference hparams/train.yaml |
-| ESC-50 evaluation | 5-fold cross-validation | ESC-50 protocol |
-| SpecAugment (train) | freq_mask=24, time_mask=80 | Reference code, ESC-50 dataset |
-| Classification | Mean pooling over all tokens (final_output='ALL') | Reference code |
-| Target accuracy | ~88.30% (paper reports for Pfeiffer Conformer) | Paper Table 1 |
-| Audio resampling | 44.1kHz → 16kHz via librosa | Reference dataset code |
+| `src/AST_adapters.py` | Defines Conformer Adapter module + AST wrapper | `Conformer_adapter` class (the novel contribution), `AST_adapter` class (injection + freeze logic), `ASTLayer_adapter` (modified forward pass with parallel adapter) |
+| `main.py` | Full training pipeline | Arg parsing, model instantiation, optimizer/scheduler setup, 5-fold CV loop for ESC-50, checkpoint saving |
+| `utils/engine.py` | Train/eval loops | `train_one_epoch()`, `eval_one_epoch()` — simple and short |
+| `dataset/esc_50.py` | ESC-50 dataset class | Fold splitting, audio loading via `AutoFeatureExtractor`, SpecAugment, resampling 44.1kHz→16kHz |
+| `hparams/train.yaml` | Hyperparameters | ESC-50: max_len=500, 50 classes, batch_size=32, 50 epochs, lr=0.005, weight_decay=0.1 |
 
-### Conformer Adapter Architecture (from paper Fig. 1 + Section 2.2)
+### Good to understand:
 
-```
-Input x: [B, N, d=768]
-    │
-    ├── transpose to [B, d, N]
-    ├── Pointwise Conv1d (d → 2r=16, kernel=1)
-    ├── GLU (dim=1) → [B, r=8, N]
-    ├── Depthwise Conv1d (r → r, kernel=8, groups=r, padding='same')
-    ├── BatchNorm1d(r)
-    ├── SiLU (Swish)
-    ├── Pointwise Conv1d (r → d=768, kernel=1)
-    ├── Dropout(0.0)
-    └── transpose to [B, N, d]
-Output: [B, N, d=768]
-```
-
-The adapter output is **added** to the MHSA output (parallel placement).
-
-### Reference Code Bug (Replicate Exactly)
-
-In the reference `Conformer_adapter.forward()`:
-```python
-out = self.lnorm(x)       # LayerNorm is computed...
-out = x.transpose(-1, -2) # ...but then overwritten with raw x
-```
-The LayerNorm result is **discarded**. The LN module exists and its parameters are trained, but its output is never used. We replicate this behavior exactly to match the paper's reported results. Note this in the report as an observation.
-
-### What We Train (Unfrozen Parameters)
-
-Per the reference code's `_unfreeze_adapters()`:
-1. All adapter modules (conformer adapter in each of 12 layers, applied to FFN position per Pfeiffer)
-2. `layernorm_after` in each transformer layer
-3. The final `layernorm` of the model
-4. The classification head (linear: 768 → 50)
-
-**Wait — important clarification from the reference code**: Despite "Pfeiffer = MHSA only" in the paper text, the reference code for Pfeiffer actually places the adapter parallel to the **FFN** block (after `layernorm_after`), not the MHSA. The paper's Table description says Pfeiffer adapters are "added in parallel to only the MHSA layer" but the code does `adapter_module_FFN` placed parallel to the FFN output. We follow the **code** (which produced the reported numbers), not the ambiguous paper text.
-
----
-
-## 3. Phase Breakdown
-
-### Phase 0: Pre-Sprint Infrastructure (Yuval — NOW, before team meeting)
-
-**Goal**: When teammates open the repo, they can immediately start writing model/pipeline code.
-
-| Task | Detail |
+| File | Why |
 |---|---|
-| Init git repo | `git init`, create `.gitignore` |
-| Create directory scaffold | All folders from the structure above with `__init__.py` files |
-| Write `requirements.txt` | Pinned versions, tested on Python 3.10 |
-| Write `configs/esc50_conformer.yaml` | All hyperparameters from the table above |
-| Write `download_data.sh` | Script to download and extract ESC-50 |
-| Write `.cursor/rules/project-conventions.mdc` | Team coding rules for AI agents |
-| Write onboarding section in `readme.txt` | Setup instructions for teammates |
-| Write `src/data/esc50_dataset.py` | ESC-50 dataset class (5-fold CV, SpecAug) |
-| Verify data pipeline | Load dataset, print shapes, confirm spectrogram extraction works |
+| `src/AST.py` | Base AST wrapper — helps understand what `AST_adapter` extends |
+| The other PETL methods in `src/` | Context for the paper's comparisons, may come up in oral exam |
 
-### Phase 1: Model Implementation (Day 1, ~2-3 hours)
+---
 
-| Task | Detail | Who |
+## 3. The Training Command
+
+For our specific experiment (Conformer Adapter, Pfeiffer, parallel, ESC-50):
+
+```bash
+python main.py \
+    --data_path 'data' \
+    --dataset_name 'ESC-50' \
+    --method 'adapter' \
+    --adapter_block 'conformer' \
+    --adapter_type 'Pfeiffer' \
+    --seq_or_par 'parallel' \
+    --reduction_rate_adapter 96 \
+    --kernel_size 8 \
+    --apply_residual False \
+    --is_AST True \
+    --seed 10
+```
+
+Expected: ~88.30% average accuracy over 5 folds, ~271K trainable parameters.
+
+---
+
+## 4. Phase Breakdown
+
+### Phase 1: Setup & Understanding (Day 1, first half)
+
+| Task | Who | Detail |
 |---|---|---|
-| `src/models/conformer_adapter.py` | Implement the Conformer Adapter `nn.Module` exactly per the architecture above | 1 person |
-| `src/models/ast_with_adapter.py` | Load pretrained AST, inject adapters into each layer, freeze backbone, unfreeze adapter params + LNs | 1 person |
-| Param count verification | Instantiate model, assert trainable params ≈ 271K | Same person |
-| Unit smoke test | Forward pass with random tensor [2, 500, 128], verify output shape [2, 50] | Same person |
+| Verify setup | Everyone | Pull repo, install deps, download ESC-50, run the verify command |
+| Read the code together | Everyone | Walk through `src/AST_adapters.py` and `main.py` as a team. Understand every class and function. |
+| Understand the Conformer Adapter | Everyone | Trace the forward pass: input → pointwise conv → GLU → depthwise conv → batchnorm → swish → pointwise conv → output. Map it to paper Fig. 1 and Section 2.2. |
+| Understand adapter injection | Everyone | How `ASTLayer_adapter.forward()` adds the adapter output parallel to FFN. What gets frozen vs unfrozen. |
 
-### Phase 2: Training Pipeline (Day 1, ~2-3 hours — can run in parallel with Phase 1)
+### Phase 2: First Training Run (Day 1, second half)
 
-| Task | Detail | Who |
+| Task | Who | Detail |
 |---|---|---|
-| `src/utils/engine.py` | `train_one_epoch()` and `eval_one_epoch()` functions | 1 person |
-| `train.py` | Argparse CLI, 5-fold loop, optimizer/scheduler setup, logging, checkpoint save, CSV logging for plots | 1 person |
-| `evaluation.py` | Load checkpoint, run eval on test fold, print accuracy | Same or another person |
-| `src/utils/visualization.py` | Read CSV logs, generate loss/accuracy convergence plots (matplotlib) | 1 person |
+| Quick smoke test | 1 person | Run 1 fold, 2-3 epochs. Verify loss decreases, no crashes, param count is ~271K. |
+| Fix any issues | Team | Dependency mismatches, path issues, CUDA/MPS issues |
+| Launch full training | 1 person | Start 5-fold × 50 epochs. Monitor first fold. |
+| Add logging for plots | 1-2 people | The authors use wandb. We need convergence plots for the report — either enable wandb or add CSV logging to `engine.py`. |
 
-### Phase 3: Integration, Training & Debugging (Day 1 evening → Day 2 morning)
+### Phase 3: Evaluation & Deliverables (Day 2)
 
-| Task | Detail |
+| Task | Who | Detail |
+|---|---|---|
+| Write `evaluation.py` | 1 person | Standalone eval script (course requirement). Load checkpoint, run eval on test fold, print accuracy. |
+| Generate convergence plots | 1 person | Loss + accuracy curves per fold. Use matplotlib. |
+| Collect audio samples | 1 person | Copy representative clips from ESC-50 train/val into `samples/`. |
+| Polish `readme.txt` | 1 person | Final run instructions matching the actual CLI. |
+| Document challenges | Everyone | What broke, what we fixed, any deviations from the paper. This goes into the report. |
+
+### Phase 4: Report (Day 2 + after sprint)
+
+| Section | Notes |
 |---|---|
-| End-to-end test | Run 1 fold, 2-3 epochs — verify loss decreases, no crashes |
-| Fix bugs | Whatever breaks during integration |
-| Full training run | Launch 5-fold × 50 epochs on GPU (this takes hours — start ASAP) |
-| Monitor training | Watch for divergence, NaN, OOM |
-
-### Phase 4: Deliverables & Reporting (Day 2)
-
-| Task | Detail | Who |
-|---|---|---|
-| Generate convergence plots | Loss + accuracy curves from CSV logs | 1 person |
-| Copy audio samples | Pick representative clips from train/val sets into `samples/` | 1 person |
-| Polish `readme.txt` | Exact run instructions for `train.py` and `evaluation.py` | 1 person |
-| Start report outline | LaTeX template on Overleaf with sections filled in | 1 person |
-| Package `project_code.zip` | Everything except `data/`, `outputs/`, `.git/` | 1 person |
+| Abstract | What we did, our results |
+| Introduction | PETL problem, AST model, conformer adapter solution |
+| Related Work | PETL methods (LoRA, adapters, prompt tuning) — paper covers this well |
+| Method | Conformer Adapter architecture, Pfeiffer placement, training setup |
+| Results + Discussion | Our 5-fold accuracy vs paper's 88.30%, convergence plots, observations |
+| Challenges | Dependency updates, any modifications, the LayerNorm bug, Pfeiffer placement ambiguity |
+| Future Work | Suggest improvement (do NOT implement) |
+| Limitations & Broader Impact | Model biases, environmental sound classification risks |
 
 ---
 
-## 4. Task Parallelization Strategy
+## 5. Potential Challenges to Watch For
 
-With 4 people and coding agents, the implementation is fast. The bottleneck is **GPU training time** (5 folds × 50 epochs ≈ several hours on T4). So the strategy is: **merge code fast, start training early, use training time for report/polish work**.
-
-### Day 1
-
-```
-Morning (Yuval solo — pre-meeting prep):
-  └── Phase 0: Infrastructure, data pipeline, config
-
-Afternoon (Full team):
-  ├── Person A + Person B: Phase 1 (Model)
-  │   ├── A: conformer_adapter.py
-  │   └── B: ast_with_adapter.py (depends on A finishing the adapter module)
-  │
-  └── Person C + Person D: Phase 2 (Training pipeline)
-      ├── C: engine.py + train.py
-      └── D: evaluation.py + visualization.py
-
-Evening:
-  └── Everyone: Phase 3 — integrate, debug, launch first full training run
-```
-
-### Day 2
-
-```
-Morning:
-  ├── Training running on GPU (launched night before or early morning)
-  ├── Fix any issues from overnight run
-  └── If training crashed: debug and relaunch
-
-Afternoon:
-  ├── Person A: Generate plots from training logs
-  ├── Person B: Polish readme.txt + package code zip
-  ├── Person C + D: Start report on Overleaf
-  └── Everyone reviews final deliverables
-```
-
----
-
-## 5. Estimated Training Time
-
-Back-of-envelope for T4 GPU:
-- ESC-50: 2000 clips, 5 folds → train split ≈ 1200 samples per fold
-- Batch size 32 → ~38 steps/epoch
-- 50 epochs → ~1900 steps per fold
-- AST forward pass on T4 ≈ ~0.15s/batch (small model, small adapter)
-- Per fold: ~1900 × 0.15 ≈ ~5 minutes
-- 5 folds: ~25 minutes total
-
-This is **very fast**. ESC-50 is a small dataset. We can afford multiple runs if needed.
-
----
-
-## 6. Immediate Next Steps (Yuval — Right Now)
-
-1. **Initialize the git repo** and push the skeleton.
-2. **Create all directories** and placeholder files.
-3. **Write `requirements.txt`** — install and verify it works on Python 3.10.
-4. **Write `configs/esc50_conformer.yaml`** with all locked hyperparameters.
-5. **Write `download_data.sh`** and download ESC-50 yourself to test.
-6. **Write `src/data/esc50_dataset.py`** — the data loading is mechanical and well-understood from the reference.
-7. **Write the Cursor rules file** so teammates' agents follow the same conventions.
-8. **Write the onboarding guide** (setup instructions) in `readme.txt`.
-
-When teammates arrive, they clone → `pip install -r requirements.txt` → run `download_data.sh` → open Cursor → start working on their assigned module immediately. Zero config time.
-
----
-
-## 7. Teammate Onboarding Guide
-
-```
-Quick Start (5 minutes):
-1. Clone the repo
-2. Create a Python 3.10 venv:
-     python3.10 -m venv venv && source venv/bin/activate
-3. Install dependencies:
-     pip install -r requirements.txt
-4. Download ESC-50:
-     bash download_data.sh
-5. Verify setup:
-     python -c "from src.data.esc50_dataset import ESC50Dataset; print('OK')"
-6. Open in Cursor — the .cursor/rules/ file will guide your AI agent.
-7. Check this plan for your assigned task.
-```
-
----
-
-## 8. Risk Register
-
-| Risk | Mitigation |
+| Issue | What to do |
 |---|---|
-| OOM on T4 (16GB) | Batch size 32 with frozen backbone + tiny adapter should be fine. If OOM, reduce to 16. |
-| Accuracy far below 88.3% | Verify: (1) correct hyperparams, (2) adapter is parallel not sequential, (3) SpecAug enabled, (4) all 5 folds averaged, (5) correct LN unfreezing. |
-| Training diverges | LR 0.005 is high — if divergence, try 0.001. Check gradient norms. |
-| ESC-50 download issues | Dataset is ~600MB from GitHub. Mirror link in download script. |
-| Reference code uses old transformers (4.28) | We'll use a recent version. May need to adjust AST layer class imports. Test early. |
-| 5-fold CV takes too long | Unlikely (see §5). But if needed, start with 1 fold to validate, then run all 5. |
+| **Dependency versions** | Authors use torch 1.13 / transformers 4.28. We use modern versions. Internal HuggingFace class imports (`ASTLayer`, `ASTEncoder`, `ASTOutput`) might have changed. Already verified they work with transformers 4.57. |
+| **ESC-50 path structure** | The dataset class expects `data_path/ESC-50/meta/esc50.csv` and `data_path/ESC-50/audio/*.wav`. Our download script puts it at `data/ESC-50/`. So `--data_path 'data'` should work. |
+| **No separate eval script** | Authors' `main.py` trains + evaluates in one run. We need to write a standalone `evaluation.py` for the course requirement. |
+| **Convergence plots** | Authors use wandb (optional). We need plots for the report. Either use wandb, tensorboard, or add CSV logging. |
+| **LayerNorm bug in Conformer Adapter** | The `forward()` computes LayerNorm but overwrites the result. This is in the published code and produced the reported numbers. Don't "fix" it. Note it as an observation in the report. |
+| **Pfeiffer placement ambiguity** | Paper text says "parallel to MHSA" but code places adapter parallel to FFN. Follow the code. Note this in the report. |
 
 ---
 
-## 9. Definition of Done
+## 6. What We Wrote vs What's Theirs
 
-- [ ] `train.py` runs end-to-end on ESC-50 with 5-fold CV
-- [ ] `evaluation.py` loads a checkpoint and prints fold accuracy
-- [ ] Trainable parameter count ≈ 271K
-- [ ] Final accuracy is within reasonable range of 88.3% (±3%)
-- [ ] Convergence plots (loss + accuracy) generated and saved
-- [ ] Audio samples saved in `samples/`
-- [ ] `readme.txt` has exact run instructions
-- [ ] `requirements.txt` installs cleanly on Python 3.10
-- [ ] Code is clean enough that any team member can explain any function
+For the report's citation section:
+
+**Authors' code (cited):**
+- `src/` — all model implementations
+- `dataset/` — all dataset classes
+- `utils/engine.py` — train/eval loops
+- `hparams/train.yaml` — hyperparameters
+- `main.py` — training pipeline
+
+**Our additions:**
+- `evaluation.py` — standalone evaluation script
+- `download_data.sh` — dataset download automation
+- `readme.txt` — submission documentation
+- Convergence plot generation
+- Any bug fixes or modifications (documented in report)
+- Dependency updates from torch 1.13 → 2.4

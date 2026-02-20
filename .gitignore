@@ -1,6 +1,7 @@
-# Data and outputs (root-level only, not src/data/)
+# Data and outputs (root-level only, not dataset/)
 /data/
 /outputs/
+checkpoints/
 *.pt
 *.pth
 
@@ -17,6 +18,8 @@ env/
 
 # IDE
 .vscode/
+.bloop
+.wixbazel/
 *.swp
 *.swo
 .DS_Store
