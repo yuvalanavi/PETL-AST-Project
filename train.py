@@ -13,12 +13,12 @@ The log file is saved to outputs/training.log (or the --output_path directory).
 import sys
 import os
 import io
-import torch
 
-# Force SDPA to use the "math" backend (equivalent to eager attention).
-# Flash/mem-efficient backends produce NaN on certain GPU/driver combos.
-torch.backends.cuda.enable_flash_sdp(False)
-torch.backends.cuda.enable_mem_efficient_sdp(False)
+# Force eager (manual) attention instead of SDPA for the AST model.
+# ASTSdpaAttention produces NaN losses with the Conformer adapter on T4 GPUs.
+# This must run BEFORE any transformers model is loaded.
+from transformers.models.audio_spectrogram_transformer.modeling_audio_spectrogram_transformer import ASTPreTrainedModel
+ASTPreTrainedModel._supports_sdpa = False
 
 
 class TeeStream:
