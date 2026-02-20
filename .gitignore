@@ -29,3 +29,8 @@ env/
 
 # Wandb
 wandb/
+
+# Wix Bazel extension generated files
+.wixbazel
+.bsp
+.metals
