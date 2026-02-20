@@ -1,0 +1,82 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{cite}
+
+% Note: The report must be no more than 5 pages long (not including references)[cite: 13].
+
+\title{\textbf{Efficient Adaptation of Audio Spectrogram Transformers for Environmental Sound Classification}}
+\author{
+    \textbf{Tel Aviv University} \\
+    Advanced Topics in Audio Processing using Deep Learning \\
+    \vspace{0.5cm} \\
+    Yuval Anavi - 318677622 \\
+    Eden Avrahami - 207106444 \\
+    Guy Yaffe - 207253980 \\
+    Tom Nouri - 209402833
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+% Explain shortly in simple words what you've done and your results[cite: 49].
+This project explores Parameter-Efficient Transfer Learning (PETL) for environmental sound classification. We adapt a pre-trained Audio Spectrogram Transformer (AST) to the ESC-50 dataset by injecting novel Conformer Adapter modules, freezing the backbone to minimize compute. We detail the reproduction of these adapters and summarize our classification performance and convergence efficiency.
+\end{abstract}
+
+\section{Introduction}
+% Explain what problem the research paper addresses, and how it solves it[cite: 50].
+Full fine-tuning of large pre-trained models like AST is computationally expensive and memory-intensive[cite: 90, 91]. The selected research paper addresses this by introducing a Conformer Adapter, which leverages depthwise convolutions to adapt the model using only a fraction of the parameters while capturing spatial correlations crucial for audio tasks[cite: 109, 110].
+
+\section{Related Work}
+% Specifies (and cites) relevant research papers / prior work done in the field[cite: 51].
+% E.g., AST model, standard bottleneck adapters, LoRA.
+
+\section{Method}
+% The main part of the report[cite: 52].
+
+\subsection{Architecture}
+% Detail the AST backbone and the injected Conformer Adapter[cite: 53].
+
+\subsection{Evaluation Metrics}
+% Explain the evaluation metrics - add equation(s) if needed[cite: 54].
+
+\subsection{Experimental Setup}
+% Compute, hyper parameters used, datasets, etc.[cite: 54, 55].
+The model is fine-tuned on the ESC-50 dataset, consisting of 2,000 environmental audio recordings across 50 classes[cite: 193]. We utilized the AST model pre-trained on ImageNet-21K and AudioSet[cite: 210]. 
+
+\subsection{Implementation Challenges}
+% Specify the challenges you faced when using the Git repository to reproduce the results, including modifications[cite: 56, 57].
+
+\section{Results and Discussion}
+% Show interesting results and explain them[cite: 58, 59].
+
+\subsection{Convergence Graphs}
+% Add the convergence graphs (loss, acc. of the model during training) - can use Tensorboard screenshots[cite: 60, 61].
+
+\section{Future Work}
+% Suggest an idea for improving the proposed method. Do NOT implement it. Explain why it will work, and pros/cons[cite: 62, 63, 64].
+
+\section{Limitations and Broader Impact}
+% Specify the broader impact and risks of the model you've trained[cite: 65, 66].
+
+\section*{References}
+% List of relevant references. This section can exceed the 5-page limit[cite: 66, 67].
+\begin{thebibliography}{9}
+
+\bibitem{cappellazzo2024}
+U. Cappellazzo, D. Falavigna, A. Brutti, and M. Ravanelli, ``Parameter-Efficient Transfer Learning of Audio Spectrogram Transformers,'' \emph{arXiv preprint arXiv:2312.03694v4}, 2024. [cite: 69, 71, 72]
+
+\bibitem{gong2021}
+Y. Gong, Y. Chung, and J. Glass, ``AST: Audio Spectrogram Transformer,'' in \emph{Interspeech}, 2021. [cite: 334]
+
+\end{thebibliography}
+
+\end{document}
