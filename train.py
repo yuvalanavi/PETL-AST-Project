@@ -13,6 +13,12 @@ The log file is saved to outputs/training.log (or the --output_path directory).
 import sys
 import os
 import io
+import torch
+
+# Force SDPA to use the "math" backend (equivalent to eager attention).
+# Flash/mem-efficient backends produce NaN on certain GPU/driver combos.
+torch.backends.cuda.enable_flash_sdp(False)
+torch.backends.cuda.enable_mem_efficient_sdp(False)
 
 
 class TeeStream:

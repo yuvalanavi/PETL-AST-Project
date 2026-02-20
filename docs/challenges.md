@@ -103,28 +103,37 @@ When `args.output_path` is `'./outputs'` (a relative path), this produces a malf
 
 ---
 
-## 7. SDPA Attention Produces NaN Losses
+## 7. SDPA Attention Produces NaN Losses (Flash/MemEfficient Backends)
 
-**Problem**: With `transformers>=4.37`, the HuggingFace AST model auto-selects `ASTSdpaAttention` (using `torch.nn.functional.scaled_dot_product_attention`) when running on `torch>=2.0`. During training with the Conformer adapter injected, this SDPA path produces `nan` for every epoch's training loss. The model outputs 2% accuracy (random chance for 50 classes), and checkpoints cannot be saved because the best accuracy is never updated.
+**Problem**: With `transformers>=4.37`, the HuggingFace AST model auto-selects `ASTSdpaAttention` (using `torch.nn.functional.scaled_dot_product_attention`) when running on `torch>=2.0`. The flash-attention and memory-efficient backends of SDPA produce `nan` for every epoch's training loss when used with the Conformer adapter. The model outputs 2% accuracy (random chance for 50 classes).
 
-The authors' code was developed with `transformers==4.28.1`, which only has the eager `ASTAttention` class (manual query-key-value dot product with explicit softmax). The SDPA kernel handles attention masking and numerical scaling differently, and appears to be incompatible with the adapter's intermediate hidden states.
+The authors' code was developed with `transformers==4.28.1`, which only has the eager `ASTAttention` class (manual query-key-value dot product with explicit softmax). The flash/mem-efficient SDPA kernels handle attention computation differently and appear numerically unstable with the adapter-modified hidden states.
 
 **Symptom**: Training log shows `Trainloss at epoch N: nan` for every epoch, with accuracy stuck at 2.0%.
 
-**Solution**: Pin `transformers==4.36.0` — the last version before SDPA was added to the AST model. This ensures the model loads with the original `ASTAttention` class, matching the authors' expected behavior.
+**Solution**: We disable the flash and memory-efficient SDPA backends in PyTorch, forcing the "math" backend (which computes attention the same way as eager):
+
+```python
+torch.backends.cuda.enable_flash_sdp(False)
+torch.backends.cuda.enable_mem_efficient_sdp(False)
+```
+
+This is done in `train.py` (our wrapper) before importing the authors' code. Combined with `transformers==4.44.0` (which is API-compatible and tested with modern PyTorch), this gives correct numerical results without modifying the authors' model code.
+
+**Why not pin `transformers==4.36.0`?** Initially we tried this (the last version before SDPA was added). While it worked briefly, `transformers==4.36.0` (December 2023) is not compatible with `PyTorch 2.10.0` (February 2026). After a Colab runtime restart that provisioned PyTorch 2.10.0, the older transformers produced NaN even with eager attention — likely due to internal PyTorch API changes over the 2+ year gap.
 
 ---
 
-## 8. CUDA Out of Memory on T4 GPU (Eager Attention Memory Cost)
+## 8. CUDA Out of Memory on T4 GPU
 
-**Problem**: After downgrading to `transformers==4.36.0` (to fix the SDPA/NaN issue in Challenge 7), the AST model uses eager attention, which materializes the full attention matrix (`Q·K^T`) in memory. This requires significantly more GPU RAM than the SDPA (Flash Attention) path used by newer transformers versions. The authors developed and tested on an NVIDIA A40 (48 GB VRAM). Our target hardware — Google Colab T4 — has only 16 GB VRAM. With the authors' default batch size of 32, the backward pass OOMs:
+**Problem**: The authors developed and tested on an NVIDIA A40 (48 GB VRAM). Our target hardware — Google Colab T4 — has only 16 GB VRAM. With the authors' default batch size of 32, the backward pass OOMs:
 
 ```
 torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 510.00 MiB.
 GPU 0 has a total capacity of 14.56 GiB of which 443.81 MiB is free.
 ```
 
-**Solution**: Reduced `batch_size_ESC` from 32 to 16 in `hparams/train.yaml`. This halves peak memory usage during training and fits comfortably on the T4. Training will take roughly the same wall-clock time per epoch (the bottleneck shifts from compute to data loading), but the cosine annealing scheduler sees twice as many steps per epoch, so the learning rate schedule changes slightly.
+**Solution**: Reduced `batch_size_ESC` from 32 to 16 in `hparams/train.yaml`. This halves peak memory usage during training and fits comfortably on the T4. The cosine annealing scheduler sees twice as many steps per epoch, so the learning rate schedule changes slightly, but final accuracy should be comparable.
 
 ---
 
@@ -135,6 +144,7 @@ GPU 0 has a total capacity of 14.56 GiB of which 443.81 MiB is free.
 | `dataset/esc_50.py` | 1 line: `torch.as_tensor()` wrap | torch 2.x removed implicit numpy→tensor conversion |
 | `hparams/train.yaml` | added `epochs_ESC: 50` | Key expected by `main.py` was missing |
 | `hparams/train.yaml` | `batch_size_ESC: 32` → `16` | T4 GPU (16GB) OOMs with eager attention at batch 32 |
-| `requirements.txt` | `transformers==4.36.0` | Avoids SDPA attention (NaN) and maintains compatible API |
+| `requirements.txt` | `transformers==4.44.0` | Compatible with PyTorch 2.10 and authors' API |
+| `train.py` | Disable flash/mem-efficient SDPA | Prevents NaN from SDPA attention backends |
 
 All other authors' files (`main.py`, `src/`, `utils/engine.py`) remain **unmodified**. Our additions (`train.py`, `evaluation.py`, `utils/visualization.py`) are separate files that import from the authors' code without altering it.
