@@ -3,7 +3,7 @@
 **Paper**: "Parameter-Efficient Transfer Learning of Audio Spectrogram Transformers" (Cappellazzo et al., 2024)
 **Scope**: Reproduce the Conformer Adapter results on ESC-50 using the authors' code
 **Team**: Yuval, Eden, Guy, Tom
-**Compute**: Single consumer GPU (Colab T4 or similar)
+**Compute**: Google Colab T4 GPU (free tier)
 **Authors' repo**: https://github.com/umbertocappellazzo/PETL_AST
 
 ---
@@ -11,6 +11,8 @@
 ## Approach
 
 We use the authors' published codebase as our foundation. We run their code to train the Conformer Adapter on ESC-50, reproduce the reported results (~88.30% accuracy), and document the process. Per course guidelines, this is expected — we must understand the code, train it ourselves, cite what's theirs, and document challenges.
+
+**Runtime**: Training on Colab T4 is the default. Local machines are for code editing only.
 
 ---
 
@@ -23,7 +25,7 @@ PETL-AST-Project/
 │   ├── planning/                     # Our: this plan
 │   └── project/                      # Our: paper, guidelines, proposal
 ├── data/                             # Gitignored — ESC-50 dataset
-├── outputs/                          # Gitignored — checkpoints, logs
+├── outputs/                          # Gitignored — checkpoints, logs, plots
 ├── samples/                          # Our: audio samples for submission
 │
 │  --- Authors' code (from github.com/umbertocappellazzo/PETL_AST) ---
@@ -37,21 +39,19 @@ PETL-AST-Project/
 │   └── Wav2Vec_adapter.py            #   Wav2Vec 2.0 adapters
 ├── dataset/                          # Authors': dataset classes
 │   ├── esc_50.py                     #   ★ ESC-50 (our focus)
-│   ├── fluentspeech.py               #   FSC
-│   ├── google_speech_commands_v2.py  #   GSC
-│   ├── urban_sound_8k.py             #   US8K
-│   └── iemocap.py                    #   IEMOCAP
+│   └── ...                           #   Other datasets
 ├── utils/
-│   └── engine.py                     # Authors': train/eval one epoch
+│   ├── engine.py                     # Authors': train/eval one epoch
+│   └── visualization.py              # Our: convergence plot generation
 ├── hparams/
 │   └── train.yaml                    # Authors': all hyperparameters
 ├── main.py                           # Authors': main training entry point
 │
 │  --- Our additions ---
 │
-├── evaluation.py                     # Our: standalone eval script (required by course)
+├── evaluation.py                     # Our: standalone eval script (required)
 ├── download_data.sh                  # Our: ESC-50 download script
-├── requirements.txt                  # Updated from authors' (modern versions)
+├── requirements.txt                  # Updated for Colab compatibility
 ├── readme.txt                        # Our: submission README
 └── .gitignore
 ```
@@ -81,9 +81,9 @@ Everyone on the team must be able to explain these. The professor may ask.
 
 ---
 
-## 3. The Training Command
+## 3. Training Commands
 
-For our specific experiment (Conformer Adapter, Pfeiffer, parallel, ESC-50):
+### Smoke test (1 fold, 3 epochs — ~5 min on T4):
 
 ```bash
 python main.py \
@@ -95,12 +95,40 @@ python main.py \
     --seq_or_par 'parallel' \
     --reduction_rate_adapter 96 \
     --kernel_size 8 \
-    --apply_residual False \
-    --is_AST True \
-    --seed 10
+    --device cuda \
+    --num_folds 1 --num_epochs 3 \
+    --save_best_ckpt True --output_path './outputs'
+```
+
+### Full training (5 folds × 50 epochs — ~2.5 hours on T4):
+
+```bash
+python main.py \
+    --data_path 'data' \
+    --dataset_name 'ESC-50' \
+    --method 'adapter' \
+    --adapter_block 'conformer' \
+    --adapter_type 'Pfeiffer' \
+    --seq_or_par 'parallel' \
+    --reduction_rate_adapter 96 \
+    --kernel_size 8 \
+    --device cuda \
+    --save_best_ckpt True --output_path './outputs'
 ```
 
 Expected: ~88.30% average accuracy over 5 folds, ~271K trainable parameters.
+
+### After training — generate plots:
+
+```bash
+python utils/visualization.py --log_dir outputs --output_dir outputs/plots
+```
+
+### After training — evaluate checkpoints:
+
+```bash
+python evaluation.py --data_path data --checkpoint_dir outputs --device cuda
+```
 
 ---
 
@@ -110,29 +138,29 @@ Expected: ~88.30% average accuracy over 5 folds, ~271K trainable parameters.
 
 | Task | Who | Detail |
 |---|---|---|
-| Verify setup | Everyone | Pull repo, install deps, download ESC-50, run the verify command |
-| Read the code together | Everyone | Walk through `src/AST_adapters.py` and `main.py` as a team. Understand every class and function. |
-| Understand the Conformer Adapter | Everyone | Trace the forward pass: input → pointwise conv → GLU → depthwise conv → batchnorm → swish → pointwise conv → output. Map it to paper Fig. 1 and Section 2.2. |
-| Understand adapter injection | Everyone | How `ASTLayer_adapter.forward()` adds the adapter output parallel to FFN. What gets frozen vs unfrozen. |
+| Verify setup | Everyone | Pull repo, install deps on Colab, download ESC-50 |
+| Read the code together | Everyone | Walk through `src/AST_adapters.py` and `main.py` as a team |
+| Understand the Conformer Adapter | Everyone | Trace the forward pass: pointwise conv → GLU → depthwise conv → batchnorm → swish → pointwise conv. Map to paper Fig. 1 and Section 2.2 |
+| Understand adapter injection | Everyone | How `ASTLayer_adapter.forward()` adds adapter output parallel to FFN. What gets frozen vs unfrozen |
 
-### Phase 2: First Training Run (Day 1, second half)
+### Phase 2: Smoke Test & First Run (Day 1, second half)
 
 | Task | Who | Detail |
 |---|---|---|
-| Quick smoke test | 1 person | Run 1 fold, 2-3 epochs. Verify loss decreases, no crashes, param count is ~271K. |
-| Fix any issues | Team | Dependency mismatches, path issues, CUDA/MPS issues |
-| Launch full training | 1 person | Start 5-fold × 50 epochs. Monitor first fold. |
-| Add logging for plots | 1-2 people | The authors use wandb. We need convergence plots for the report — either enable wandb or add CSV logging to `engine.py`. |
+| Smoke test on Colab | 1 person | Run `--num_folds 1 --num_epochs 3`. Verify loss decreases, param count ~271K |
+| Fix any Colab issues | Team | Path issues, CUDA issues, dependency mismatches |
+| Launch full training | 1 person | Start 5-fold × 50 epochs on Colab. Monitor first fold |
+| Read remaining code | Others | While training runs, everyone reads the code they haven't covered yet |
 
 ### Phase 3: Evaluation & Deliverables (Day 2)
 
 | Task | Who | Detail |
 |---|---|---|
-| Write `evaluation.py` | 1 person | Standalone eval script (course requirement). Load checkpoint, run eval on test fold, print accuracy. |
-| Generate convergence plots | 1 person | Loss + accuracy curves per fold. Use matplotlib. |
-| Collect audio samples | 1 person | Copy representative clips from ESC-50 train/val into `samples/`. |
-| Polish `readme.txt` | 1 person | Final run instructions matching the actual CLI. |
-| Document challenges | Everyone | What broke, what we fixed, any deviations from the paper. This goes into the report. |
+| Generate convergence plots | 1 person | From CSV logs produced by training |
+| Run `evaluation.py` | 1 person | Verify standalone eval matches training results |
+| Collect audio samples | 1 person | Copy representative clips from ESC-50 into `samples/` |
+| Polish `readme.txt` | 1 person | Final run instructions matching actual CLI |
+| Document challenges | Everyone | What broke, what we fixed — goes into report |
 
 ### Phase 4: Report (Day 2 + after sprint)
 
@@ -143,7 +171,7 @@ Expected: ~88.30% average accuracy over 5 folds, ~271K trainable parameters.
 | Related Work | PETL methods (LoRA, adapters, prompt tuning) — paper covers this well |
 | Method | Conformer Adapter architecture, Pfeiffer placement, training setup |
 | Results + Discussion | Our 5-fold accuracy vs paper's 88.30%, convergence plots, observations |
-| Challenges | Dependency updates, any modifications, the LayerNorm bug, Pfeiffer placement ambiguity |
+| Challenges | Torch version updates, the LayerNorm bug, Pfeiffer placement ambiguity |
 | Future Work | Suggest improvement (do NOT implement) |
 | Limitations & Broader Impact | Model biases, environmental sound classification risks |
 
@@ -153,18 +181,15 @@ Expected: ~88.30% average accuracy over 5 folds, ~271K trainable parameters.
 
 | Issue | What to do |
 |---|---|
-| **Dependency versions** | Authors use torch 1.13 / transformers 4.28. We use modern versions. Internal HuggingFace class imports (`ASTLayer`, `ASTEncoder`, `ASTOutput`) might have changed. Already verified they work with transformers 4.57. |
-| **ESC-50 path structure** | The dataset class expects `data_path/ESC-50/meta/esc50.csv` and `data_path/ESC-50/audio/*.wav`. Our download script puts it at `data/ESC-50/`. So `--data_path 'data'` should work. |
-| **No separate eval script** | Authors' `main.py` trains + evaluates in one run. We need to write a standalone `evaluation.py` for the course requirement. |
-| **Convergence plots** | Authors use wandb (optional). We need plots for the report. Either use wandb, tensorboard, or add CSV logging. |
-| **LayerNorm bug in Conformer Adapter** | The `forward()` computes LayerNorm but overwrites the result. This is in the published code and produced the reported numbers. Don't "fix" it. Note it as an observation in the report. |
-| **Pfeiffer placement ambiguity** | Paper text says "parallel to MHSA" but code places adapter parallel to FFN. Follow the code. Note this in the report. |
+| **torch version on Colab** | Colab has torch 2.8+ / CUDA 12.8. Authors used torch 1.13. We pin transformers==4.28.1 (authors' version) for API compat. Code mods for torch 2.x are already done. |
+| **ESC-50 path structure** | Dataset class expects `data_path/ESC-50/meta/esc50.csv` and `audio/*.wav`. Our download puts it at `data/ESC-50/`. Use `--data_path 'data'`. |
+| **`type=bool` argparse bug** | Authors use `type=bool` which doesn't work correctly. Don't pass `--apply_residual False` or `--is_AST True` from CLI — let defaults apply. |
+| **LayerNorm bug in Conformer Adapter** | The `forward()` computes LayerNorm but overwrites the result. This is in the published code and produced the reported numbers. Don't "fix" it. Note it in report. |
+| **Pfeiffer placement ambiguity** | Paper text says "parallel to MHSA" but code places adapter parallel to FFN. Follow the code. Note this in report. |
 
 ---
 
 ## 6. What We Wrote vs What's Theirs
-
-For the report's citation section:
 
 **Authors' code (cited):**
 - `src/` — all model implementations
@@ -175,8 +200,12 @@ For the report's citation section:
 
 **Our additions:**
 - `evaluation.py` — standalone evaluation script
+- `utils/visualization.py` — convergence plot generation
 - `download_data.sh` — dataset download automation
 - `readme.txt` — submission documentation
-- Convergence plot generation
-- Any bug fixes or modifications (documented in report)
-- Dependency updates from torch 1.13 → 2.4
+- `requirements.txt` — updated for Colab torch 2.x compatibility
+
+**Modifications to authors' code (all marked with `# MODIFIED:`):**
+- `main.py`: CSV logging, output path fix, `--num_folds`/`--num_epochs` overrides
+- `dataset/esc_50.py`: `torch.as_tensor()` for torch 2.x compatibility
+- `hparams/train.yaml`: Added `epochs_ESC` key (missing in original)

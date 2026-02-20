@@ -31,6 +31,7 @@ import datetime
 import yaml
 import os
 import copy
+import csv  # MODIFIED: added for CSV logging
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Parameter-efficient Transfer-learning of AST',
@@ -93,6 +94,10 @@ def get_args_parser():
     # Few-shot experiments.
     parser.add_argument('--is_few_shot_exp', default = False)
     parser.add_argument('--few_shot_samples', default = 64)
+    
+    # MODIFIED: overrides for quick smoke tests
+    parser.add_argument('--num_folds', type=int, default=None, help='Override fold count (e.g. 1 for smoke test)')
+    parser.add_argument('--num_epochs', type=int, default=None, help='Override epoch count (e.g. 3 for smoke test)')
     
     # WANDB args. 
     parser.add_argument('--use_wandb', type= bool, default= False)
@@ -183,6 +188,12 @@ def main(args):
         speaker_id_val = ['F', 'M', 'F', 'M', 'F', 'M', 'F', 'M', 'F', 'M']
         speaker_id_test = ['M', 'F', 'M', 'F', 'M', 'F', 'M', 'F', 'M', 'F']
 
+    
+    # MODIFIED: apply overrides if specified
+    if args.num_folds is not None:
+        fold_number = min(args.num_folds, fold_number)
+    if args.num_epochs is not None:
+        epochs = args.num_epochs
     
     for fold in range(0,fold_number):
         
@@ -310,6 +321,13 @@ def main(args):
         
         best_acc = 0.
         
+        # MODIFIED: CSV logging for convergence plots
+        os.makedirs(args.output_path.lstrip('./'), exist_ok=True)
+        csv_path = os.path.join(args.output_path.lstrip('./'), f'log_fold{fold}.csv')
+        csv_file = open(csv_path, 'w', newline='')
+        csv_writer = csv.DictWriter(csv_file, fieldnames=['epoch', 'train_loss', 'train_acc', 'val_loss', 'val_acc', 'lr'])
+        csv_writer.writeheader()
+        
         for epoch in range(epochs):
             train_loss, train_acc= train_one_epoch(model, train_loader, optimizer, scheduler, device, criterion)
             print(f"Trainloss at epoch {epoch}: {train_loss}")
@@ -324,7 +342,10 @@ def main(args):
                 best_params = model.state_dict()
                 
                 if args.save_best_ckpt:
-                    torch.save(best_params, os.getcwd() + args.output_path + f'/bestmodel_fold{fold}')   
+                    # MODIFIED: use os.path.join instead of string concat (fixes path bug)
+                    ckpt_dir = args.output_path.lstrip('./')
+                    os.makedirs(ckpt_dir, exist_ok=True)
+                    torch.save(best_params, os.path.join(ckpt_dir, f'bestmodel_fold{fold}'))
             
             print("Train intent accuracy: ", train_acc*100)
             print("Valid intent accuracy: ", val_acc*100)           
@@ -332,11 +353,18 @@ def main(args):
             current_lr = optimizer.param_groups[0]['lr']
             print('Learning rate after initialization: ', current_lr)
             
+            # MODIFIED: write row to CSV log
+            csv_writer.writerow({'epoch': epoch, 'train_loss': train_loss, 'train_acc': train_acc,
+                                 'val_loss': val_loss, 'val_acc': val_acc, 'lr': current_lr})
+            csv_file.flush()
+            
             if args.use_wandb:
                 wandb.log({"train_loss": train_loss, "valid_loss": val_loss,
                            "train_accuracy": train_acc, "val_accuracy": val_acc,
                            "lr": current_lr, }
                           )
+        
+        csv_file.close()  # MODIFIED: close CSV log for this fold
         
         best_model = copy.copy(model)
         best_model.load_state_dict(best_params)
