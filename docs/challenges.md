@@ -115,12 +115,26 @@ The authors' code was developed with `transformers==4.28.1`, which only has the 
 
 ---
 
+## 8. CUDA Out of Memory on T4 GPU (Eager Attention Memory Cost)
+
+**Problem**: After downgrading to `transformers==4.36.0` (to fix the SDPA/NaN issue in Challenge 7), the AST model uses eager attention, which materializes the full attention matrix (`Q·K^T`) in memory. This requires significantly more GPU RAM than the SDPA (Flash Attention) path used by newer transformers versions. The authors developed and tested on an NVIDIA A40 (48 GB VRAM). Our target hardware — Google Colab T4 — has only 16 GB VRAM. With the authors' default batch size of 32, the backward pass OOMs:
+
+```
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 510.00 MiB.
+GPU 0 has a total capacity of 14.56 GiB of which 443.81 MiB is free.
+```
+
+**Solution**: Reduced `batch_size_ESC` from 32 to 16 in `hparams/train.yaml`. This halves peak memory usage during training and fits comfortably on the T4. Training will take roughly the same wall-clock time per epoch (the bottleneck shifts from compute to data loading), but the cosine annealing scheduler sees twice as many steps per epoch, so the learning rate schedule changes slightly.
+
+---
+
 ## Summary of Modifications
 
 | File | Change | Reason |
 |---|---|---|
 | `dataset/esc_50.py` | 1 line: `torch.as_tensor()` wrap | torch 2.x removed implicit numpy→tensor conversion |
-| `hparams/train.yaml` | 1 line: added `epochs_ESC: 50` | Key expected by `main.py` was missing |
+| `hparams/train.yaml` | added `epochs_ESC: 50` | Key expected by `main.py` was missing |
+| `hparams/train.yaml` | `batch_size_ESC: 32` → `16` | T4 GPU (16GB) OOMs with eager attention at batch 32 |
 | `requirements.txt` | `transformers==4.36.0` | Avoids SDPA attention (NaN) and maintains compatible API |
 
 All other authors' files (`main.py`, `src/`, `utils/engine.py`) remain **unmodified**. Our additions (`train.py`, `evaluation.py`, `utils/visualization.py`) are separate files that import from the authors' code without altering it.
