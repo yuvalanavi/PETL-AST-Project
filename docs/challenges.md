@@ -11,7 +11,7 @@
 
 Additionally, `transformers==4.28.1` depends on an old version of the `tokenizers` library that requires Rust compilation. On Colab's Python 3.12 environment, this build fails because no pre-built wheels are available.
 
-**Solution**: We use `transformers==4.44.0`, which is the latest version that retains the same `ASTAttention` and `ASTLayer` forward-pass signatures used in the authors' code (accepting `head_mask` and `output_attentions` arguments). Later versions (≥4.49) refactored the AST model's attention interface, removing these parameters entirely, which would break the authors' adapter injection code. For PyTorch, we use whatever version Colab provides (torch 2.x with CUDA 12.x), which is forward-compatible.
+**Solution**: We use `transformers==4.36.0`, which retains the original `ASTAttention` class (eager/manual attention) matching the authors' code. Versions 4.37–4.44 introduced `ASTSdpaAttention` (Scaled Dot-Product Attention via `torch.nn.functional.scaled_dot_product_attention`), which is auto-selected when `torch>=2.0` is detected. The SDPA path produces **NaN losses** during training — likely due to numerical instability in the attention computation with the adapter-modified hidden states. Later versions (≥4.49) also refactored the attention forward-pass signatures entirely, breaking the adapter injection code. For PyTorch, we use whatever version Colab provides (torch 2.x with CUDA 12.x), which is forward-compatible.
 
 ---
 
@@ -89,7 +89,7 @@ torch.save(best_params, os.getcwd() + args.output_path + f'/bestmodel_fold{fold}
 
 When `args.output_path` is `'./outputs'` (a relative path), this produces a malformed path like `.../PETL-AST-Project./outputs/bestmodel_fold0` (note the `Project.` instead of `Project/`). The parent directory does not exist, causing a `RuntimeError`.
 
-**Solution**: In our `train.py` wrapper, we use `os.path.join()` and `os.makedirs()` to construct paths correctly. We do not modify the authors' `main.py`. When using `main.py` directly (without our wrapper), the `--output_path` argument must start with `/` to produce a valid absolute path via concatenation.
+**Solution**: We pass `--output_path '/outputs'` (with a leading `/`) so that the string concatenation `os.getcwd() + '/outputs'` produces a valid path. Our `train.py` wrapper also calls `os.makedirs()` to ensure the directory exists before training begins. We do not modify the authors' `main.py`.
 
 ---
 
@@ -103,11 +103,24 @@ When `args.output_path` is `'./outputs'` (a relative path), this produces a malf
 
 ---
 
+## 7. SDPA Attention Produces NaN Losses
+
+**Problem**: With `transformers>=4.37`, the HuggingFace AST model auto-selects `ASTSdpaAttention` (using `torch.nn.functional.scaled_dot_product_attention`) when running on `torch>=2.0`. During training with the Conformer adapter injected, this SDPA path produces `nan` for every epoch's training loss. The model outputs 2% accuracy (random chance for 50 classes), and checkpoints cannot be saved because the best accuracy is never updated.
+
+The authors' code was developed with `transformers==4.28.1`, which only has the eager `ASTAttention` class (manual query-key-value dot product with explicit softmax). The SDPA kernel handles attention masking and numerical scaling differently, and appears to be incompatible with the adapter's intermediate hidden states.
+
+**Symptom**: Training log shows `Trainloss at epoch N: nan` for every epoch, with accuracy stuck at 2.0%.
+
+**Solution**: Pin `transformers==4.36.0` — the last version before SDPA was added to the AST model. This ensures the model loads with the original `ASTAttention` class, matching the authors' expected behavior.
+
+---
+
 ## Summary of Modifications
 
 | File | Change | Reason |
 |---|---|---|
 | `dataset/esc_50.py` | 1 line: `torch.as_tensor()` wrap | torch 2.x removed implicit numpy→tensor conversion |
 | `hparams/train.yaml` | 1 line: added `epochs_ESC: 50` | Key expected by `main.py` was missing |
+| `requirements.txt` | `transformers==4.36.0` | Avoids SDPA attention (NaN) and maintains compatible API |
 
 All other authors' files (`main.py`, `src/`, `utils/engine.py`) remain **unmodified**. Our additions (`train.py`, `evaluation.py`, `utils/visualization.py`) are separate files that import from the authors' code without altering it.
