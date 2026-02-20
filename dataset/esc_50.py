@@ -47,25 +47,22 @@ class ESC_50(Dataset):
         return len(self.y)
     
     def __getitem__(self, index):
-        # MODIFIED: convert numpy arrays to tensors for torch >=2.0 compatibility
-        x = torch.as_tensor(self.x[index])
-        y = self.y[index]
         
         if self.apply_SpecAug:
         
             freqm = torchaudio.transforms.FrequencyMasking(self.freq_mask)
             timem = torchaudio.transforms.TimeMasking(self.time_mask)
             
-            fbank = torch.transpose(x, 0, 1)
+            fbank = torch.transpose(torch.as_tensor(self.x[index]), 0, 1)  # BUGFIX: torch 2.x requires tensor, not numpy
             fbank = fbank.unsqueeze(0)
             fbank = freqm(fbank)
             fbank = timem(fbank)
             fbank = fbank.squeeze(0)
             fbank = torch.transpose(fbank, 0, 1)
             
-            return fbank, y
+            return fbank, self.y[index]
         else:
-            return x, y
+            return self.x[index], self.y[index]
         
     def get_few_shot_data(self, samples_per_class: int):
         x_few, y_few = [], []
