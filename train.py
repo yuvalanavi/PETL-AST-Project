@@ -110,9 +110,26 @@ def patch_and_run():
         if num_folds_override is not None:
             fold_number = min(num_folds_override, fold_number)
 
+        from src.AST_adapters import AST_adapter
+        criterion = torch.nn.CrossEntropyLoss()
+        output_dir = args.output_path.lstrip('./')
         accuracy_folds = []
 
         for fold in range(0, fold_number):
+            # Skip folds that already have a completed checkpoint + log (crash recovery)
+            existing_ckpt = os.path.join(output_dir, f'bestmodel_fold{fold}')
+            existing_log = os.path.join(output_dir, f'log_fold{fold}.csv')
+            if os.path.isfile(existing_ckpt) and os.path.isfile(existing_log):
+                with open(existing_log) as _f:
+                    _rows = list(csv.DictReader(_f))
+                if len(_rows) >= epochs:
+                    print(f"\n=== Fold {fold} already complete ({len(_rows)} epochs logged). Skipping. ===")
+                    accuracy_folds.append(None)
+                    continue
+
+            print(f"\n{'='*60}")
+            print(f"  FOLD {fold+1}/{fold_number}")
+            print(f"{'='*60}")
             train_data = ESC_50(args.data_path, max_len_AST, 'train',
                                 train_fold_nums=folds_train[fold],
                                 valid_fold_nums=folds_valid[fold],
@@ -134,8 +151,6 @@ def patch_and_run():
             test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False,
                                      num_workers=args.num_workers, pin_memory=True)
 
-            # Model instantiation — same as authors' main.py for adapter method
-            from src.AST_adapters import AST_adapter
             lr = train_params['lr_adapter']
             model = AST_adapter(
                 max_length=max_len_AST, num_classes=num_classes,
@@ -154,7 +169,6 @@ def patch_and_run():
 
             optimizer = AdamW(model.parameters(), lr=lr, betas=(0.9, 0.98),
                               eps=1e-6, weight_decay=train_params['weight_decay'])
-            criterion = torch.nn.CrossEntropyLoss()
             scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
                 optimizer, len(train_loader) * epochs)
 
@@ -209,6 +223,27 @@ def patch_and_run():
             best_model.load_state_dict(best_params)
             test_loss, test_acc = eval_one_epoch(model, test_loader, device, criterion)
             accuracy_folds.append(test_acc)
+
+        # For skipped folds (crash recovery), re-evaluate to get test accuracy
+        for i, acc in enumerate(accuracy_folds):
+            if acc is None:
+                print(f"Re-evaluating fold {i} from checkpoint...")
+                ckpt_path = os.path.join(output_dir, f'bestmodel_fold{i}')
+                _test_data = ESC_50(args.data_path, max_len_AST, 'test',
+                                    train_fold_nums=folds_train[i],
+                                    valid_fold_nums=folds_valid[i],
+                                    test_fold_nums=folds_test[i])
+                _test_loader = DataLoader(_test_data, batch_size=batch_size, shuffle=False,
+                                          num_workers=args.num_workers, pin_memory=True)
+                _model = AST_adapter(
+                    max_length=max_len_AST, num_classes=num_classes, final_output=final_output,
+                    reduction_rate=args.reduction_rate_adapter, adapter_type=args.adapter_type,
+                    seq_or_par=args.seq_or_par, apply_residual=args.apply_residual,
+                    adapter_block=args.adapter_block, kernel_size=args.kernel_size,
+                    model_ckpt=args.model_ckpt_AST).to(device)
+                _model.load_state_dict(torch.load(ckpt_path, map_location=device))
+                _, _acc = eval_one_epoch(_model, _test_loader, device, criterion)
+                accuracy_folds[i] = _acc
 
         print("Folds accuracy: ", accuracy_folds)
         print(f"Avg accuracy over the {fold_number} fold(s): ", np.mean(accuracy_folds))
