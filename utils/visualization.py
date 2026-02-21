@@ -63,7 +63,9 @@ def parse_single_log(log_path):
 
 def parse_fold_logs(log_dir):
     """Parse per-fold SLURM output files from a directory."""
-    fold_files = sorted(glob.glob(os.path.join(log_dir, '*fold*_*.out')))
+    fold_files = sorted(glob.glob(os.path.join(log_dir, '*train*fold*_*.out')))
+    if not fold_files:
+        fold_files = sorted(glob.glob(os.path.join(log_dir, '*fold*_*.out')))
     if not fold_files:
         fold_files = sorted(glob.glob(os.path.join(log_dir, '*.out')))
 
@@ -84,9 +86,11 @@ def parse_fold_logs(log_dir):
 
 def plot_fold(fold_data, fold_idx, output_dir):
     """Generate loss and accuracy plots for a single fold."""
-    epochs = list(range(len(fold_data['train_loss'])))
-    if not epochs:
+    n = min(len(fold_data['train_loss']), len(fold_data['train_acc']), len(fold_data['val_acc']))
+    if n == 0:
         return
+    fold_data = {k: v[:n] for k, v in fold_data.items()}
+    epochs = list(range(n))
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
