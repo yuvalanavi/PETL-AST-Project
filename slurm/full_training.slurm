@@ -15,7 +15,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32000
-#SBATCH --gpus=1
+#SBATCH --gres=gpu:titan:1
 
 STORAGE="/vol/joberant_nobck/data/NLP_368307701_2526a/yuvalanavi"
 VENV_DIR="${STORAGE}/petl-ast/venv"
