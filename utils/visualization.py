@@ -122,12 +122,13 @@ def plot_all_folds_combined(folds, output_dir):
 
     for fold_idx in sorted(folds.keys()):
         data = folds[fold_idx]
-        epochs = list(range(len(data['train_loss'])))
-        if not epochs:
+        n = min(len(data['train_loss']), len(data['train_acc']), len(data['val_acc']))
+        if n == 0:
             continue
-        axes[0].plot(epochs, data['train_loss'], label=f'Fold {fold_idx}', alpha=0.8)
-        axes[1].plot(epochs, data['train_acc'], label=f'Fold {fold_idx}', alpha=0.8)
-        axes[2].plot(epochs, data['val_acc'], label=f'Fold {fold_idx}', alpha=0.8)
+        epochs = list(range(n))
+        axes[0].plot(epochs, data['train_loss'][:n], label=f'Fold {fold_idx}', alpha=0.8)
+        axes[1].plot(epochs, data['train_acc'][:n], label=f'Fold {fold_idx}', alpha=0.8)
+        axes[2].plot(epochs, data['val_acc'][:n], label=f'Fold {fold_idx}', alpha=0.8)
 
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Loss')
