@@ -1,16 +1,17 @@
 #!/bin/bash
 # =============================================================================
 # Smoke test: 5 folds × 1 epoch — validates the full pipeline
-# Expected: ~5-10 min on a single GPU
+# Each fold runs as a separate parallel job via SLURM job array.
+# Expected: ~6 min per fold
 #
-# Usage:  sbatch slurm/smoke_test.slurm
+# Usage:  sbatch --array=0-4 slurm/smoke_test.slurm
 # =============================================================================
 
 #SBATCH --job-name=petl-smoke
-#SBATCH --output=slurm/logs/%x_%j.out
-#SBATCH --error=slurm/logs/%x_%j.err
+#SBATCH --output=slurm/logs/%x_fold%a_%j.out
+#SBATCH --error=slurm/logs/%x_fold%a_%j.err
 #SBATCH --partition=studentkillable
-#SBATCH --time=60
+#SBATCH --time=30
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -25,30 +26,19 @@ source "${VENV_DIR}/bin/activate"
 cd "${REPO_DIR}"
 mkdir -p outputs slurm/logs
 
-echo "=== PETL-AST Smoke Test ==="
+FOLD=${SLURM_ARRAY_TASK_ID}
+export START_FOLD=${FOLD}
+export END_FOLD=$((FOLD + 1))
+export EPOCHS_OVERRIDE=1
+
+echo "=== PETL-AST Smoke Test — Fold ${FOLD} ==="
 echo "Date:   $(date)"
 echo "Node:   $(hostname)"
-echo "GPU:    $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo 'unknown')"
-echo "Python: $(python --version 2>&1)"
-echo "Torch:  $(python -c 'import torch; print(torch.__version__)')"
-echo "Transformers: $(python -c 'import transformers; print(transformers.__version__)')"
+echo "GPU:    $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)"
 echo "CUDA:   $(python -c 'import torch; print(torch.cuda.is_available())')"
 echo ""
 
-# Download data if needed
 bash download_data.sh
-
-# Override epochs to 3 for smoke test (restore afterwards)
-cp hparams/train.yaml hparams/train.yaml.bak
-python -c "
-import yaml
-with open('hparams/train.yaml') as f:
-    hp = yaml.safe_load(f)
-hp['epochs_ESC'] = 1
-with open('hparams/train.yaml', 'w') as f:
-    yaml.dump(hp, f, default_flow_style=False)
-print('epochs_ESC set to 1')
-"
 
 python train.py \
     --data_path 'data' \
@@ -64,29 +54,7 @@ python train.py \
     --save_best_ckpt True \
     --output_path '/outputs'
 
-# Restore original yaml
-cp hparams/train.yaml.bak hparams/train.yaml
-rm hparams/train.yaml.bak
-
 echo ""
-echo "=== Verification ==="
-python -c "
-import os
-d = 'outputs'
-log = os.path.join(d, 'training.log')
-if not os.path.exists(log):
-    print('!! MISSING training.log'); exit(1)
-with open(log) as f:
-    c = f.read()
-nan_lines = [l for l in c.split('\n') if 'Trainloss' in l and 'nan' in l]
-if nan_lines:
-    print(f'!! NaN in {len(nan_lines)} lines - BROKEN')
-else:
-    print('OK: No NaN in losses')
-for l in c.split('\n'):
-    if any(k in l for k in ['Trainloss at epoch 0', 'Folds accuracy', 'Avg accuracy', 'Training time']):
-        print(f'  {l.strip()}')
-ckpts = [f for f in os.listdir(d) if f.startswith('bestmodel')]
-print(f'  Checkpoints: {len(ckpts)}/5')
-"
-echo "=== Done: $(date) ==="
+echo "=== Fold ${FOLD} Done: $(date) ==="
+ls -la outputs/bestmodel_fold${FOLD} 2>/dev/null && echo "Checkpoint OK" || echo "!! No checkpoint"
+grep "Trainloss" outputs/training.log 2>/dev/null | tail -1

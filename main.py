@@ -152,7 +152,8 @@ def main(args):
         epochs = train_params['epochs_IEMO']
     else:
         raise ValueError('The dataset you chose is not supported as of now.')
-        
+    
+    epochs = int(os.environ.get('EPOCHS_OVERRIDE', epochs))
     
     if args.method == 'prompt-tuning':
         final_output = train_params['final_output_prompt_tuning']
@@ -184,7 +185,9 @@ def main(args):
         speaker_id_test = ['M', 'F', 'M', 'F', 'M', 'F', 'M', 'F', 'M', 'F']
 
     
-    for fold in range(0,fold_number):
+    start_fold = int(os.environ.get('START_FOLD', 0))
+    end_fold = int(os.environ.get('END_FOLD', fold_number))
+    for fold in range(start_fold, end_fold):
         
         # DATASETS
         
