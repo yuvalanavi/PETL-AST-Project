@@ -26,17 +26,13 @@ TypeError: transpose() received an invalid combination of arguments
 - got (numpy.ndarray, int, int), but expected (Tensor input, int dim0, int dim1)
 ```
 
-**Solution**: Wrapped the array with `torch.as_tensor()` before transposing:
+**Solution**: When running on Colab (torch 2.x), we applied a one-line fix wrapping the array with `torch.as_tensor()` before transposing. After migrating to the SLURM cluster with the authors' original `torch==1.13.1`, this fix was **reverted** — the original code works as-is on torch 1.13.1. The file is now unmodified from the authors' version.
+
+Note: If anyone needs to run on torch 2.x in the future, the fix is:
 
 ```python
-# Original (line 56):
-fbank = torch.transpose(self.x[index], 0, 1)
-
-# Fixed:
 fbank = torch.transpose(torch.as_tensor(self.x[index]), 0, 1)
 ```
-
-This is a zero-copy operation when the data types are compatible, so it does not affect performance or numerical results.
 
 ---
 
@@ -130,13 +126,13 @@ When `args.output_path` is `'./outputs'` (a relative path), this produces a malf
 
 ---
 
-## Summary of Modifications
+## Summary of Final Modifications (SLURM Cluster)
 
 | File | Change | Reason |
 |---|---|---|
-| `dataset/esc_50.py` | 1 line: `torch.as_tensor()` wrap | torch 2.x removed implicit numpy→tensor conversion |
-| `hparams/train.yaml` | added `epochs_ESC: 50` | Key expected by `main.py` was missing |
-| `hparams/train.yaml` | `batch_size_ESC: 32` → `16` | T4 GPU (16GB) OOMs with eager attention at batch 32 |
+| `hparams/train.yaml` | Added `epochs_ESC: 50` | Key expected by `main.py` was missing |
 | `requirements.txt` | Authors' original versions + `soundfile`, `matplotlib` | Exact reproduction of authors' environment |
 
-All other authors' files (`main.py`, `src/`, `utils/engine.py`) remain **unmodified**. Our additions (`train.py`, `evaluation.py`, `utils/visualization.py`) are separate files that import from the authors' code without altering it.
+All other authors' files (`main.py`, `src/`, `utils/engine.py`, `dataset/`) remain **unmodified**. Our additions (`train.py`, `evaluation.py`, `utils/visualization.py`, `slurm/`) are separate files that import from the authors' code without altering it.
+
+Note: On Google Colab (torch 2.x), we had also modified `dataset/esc_50.py` (1-line `torch.as_tensor()` wrap) and reduced `batch_size_ESC` to 16 for the T4 GPU. Both changes were **reverted** after migrating to the SLURM cluster with the authors' exact environment.

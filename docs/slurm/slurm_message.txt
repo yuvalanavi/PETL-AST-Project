@@ -1,0 +1,15 @@
+
+Hi all.
+
+Here is the path for the storage:
+
+home/yandex/APDL2526a
+
+please do not use more than 20GB for each group.
+
+Regarding compute (Slurm CS Cluster) – Please carefully read this guide before you start using the cluster: https://www.cs.tau.ac.il/system/slurm#Using%20Slurm
+
+Good luck,
+
+Tal
+

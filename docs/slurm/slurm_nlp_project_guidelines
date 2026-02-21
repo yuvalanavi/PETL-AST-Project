@@ -1,0 +1,14 @@
+You will have access to the partition studentkillable (see details in https://www.cs.tau.ac.il/
+system/slurm). You can login with your TAU credentials and see the types of GPUs you can access
+there and plan for your project proposals accordingly. It is advisable that you follow some basic tutorials
+before trying to send jobs to better understand how the system works and save yourselves time. Note
+that the cluster is a shared resource. Please avoid overusing it, be mindful of system limits (e.g., max
+run time) to make sure your jobs can finish before they are automatically killed, take into account that
+jobs may take time to start and complete depending on cluster load, and so on.
+Storage: You will have access to dedicated storage where you can host your models and datasets in
+the following location, accessible from anywhere on the system machines:
+/vol/joberant nobck/data/NLP 368307701 2526a/<your user name>
+This storage is persistent (though not backed-up, so make sure you back up all of your code and intermediate critical results on GitHub/Google drive). Make sure you use it for data, cache, virtual env,
+default directory for HuggingFace etc. You may also consider linking, e.g., ∼/.cache to a directory there with ln -s /vol/joberant nobck/data/NLP 368307701 2526a/<your user name>/.cache
+∼/.cache. Please avoid overusing it. For example, if you fine-tune a model, make sure you don’t save a
+new checkpoint every 500 steps as it will quickly block the storage space

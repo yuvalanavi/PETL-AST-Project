@@ -1,0 +1,1036 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
+<!-- saved from url=(0051)https://www.cs.tau.ac.il/system/slurm#Using%20Slurm -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="he" version="XHTML+RDFa 1.0" dir="rtl" class="js"><head profile="http://www.w3.org/1999/xhtml/vocab"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+<meta name="Generator" content="Drupal 7 (http://drupal.org)">
+<link rel="canonical" href="https://www.cs.tau.ac.il/system/slurm">
+<link rel="shortlink" href="https://www.cs.tau.ac.il/system/node/311">
+<link rel="shortcut icon" href="https://www.cs.tau.ac.il/system/sites/csnew.cs.tau.ac.il/files/logo2_0.jpg" type="image/jpeg">
+  <title>How to use SLURM | system</title>
+  <style type="text/css" media="all">
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.base.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.base-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.menus.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.menus-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.messages.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.messages-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.theme.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/system/system.theme-rtl.css?t6kx91");
+</style>
+<style type="text/css" media="all">
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/ldap/ldap_user/ldap_user.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/calendar/css/calendar_multiday.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/date/date_api/date.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/date/date_api/date-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/field/theme/field.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/field/theme/field-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/node/node.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/search/search.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/search/search-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/user/user.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/modules/user/user-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/views.2014-11-25/css/views.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/views.2014-11-25/css/views-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/ckeditor/css/ckeditor.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/ckeditor/css/ckeditor-rtl.css?t6kx91");
+</style>
+<style type="text/css" media="all">
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/ctools.2014-11-25/css/ctools.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/all/modules/ldap/ldap_servers/ldap_servers.admin.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/csnew.cs.tau.ac.il/themes/jean/font-awesome-4.7.0/css/font-awesome.min.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/csnew.cs.tau.ac.il/themes/jean/css/accessibility_css.css?t6kx91");
+</style>
+<style type="text/css" media="all">
+@import url("https://www.cs.tau.ac.il/system/themes/bartik/css/layout.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/themes/bartik/css/layout-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/themes/bartik/css/style.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/themes/bartik/css/style-rtl.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/csnew.cs.tau.ac.il/themes/jean/css/colors.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/csnew.cs.tau.ac.il/themes/jean/css/jean.css?t6kx91");
+@import url("https://www.cs.tau.ac.il/system/sites/csnew.cs.tau.ac.il/themes/jean/sweetalert-master/dist/sweetalert.css?t6kx91");
+</style>
+<style type="text/css" media="print">
+@import url("https://www.cs.tau.ac.il/system/themes/bartik/css/print.css?t6kx91");
+</style>
+
+<!--[if lte IE 7]>
+<link type="text/css" rel="stylesheet" href="https://www.cs.tau.ac.il/system/themes/bartik/css/ie.css?t6kx91" media="all" />
+<![endif]-->
+
+<!--[if lte IE 7]>
+<link type="text/css" rel="stylesheet" href="https://www.cs.tau.ac.il/system/themes/bartik/css/ie-rtl.css?t6kx91" media="all" />
+<![endif]-->
+
+<!--[if IE 6]>
+<link type="text/css" rel="stylesheet" href="https://www.cs.tau.ac.il/system/themes/bartik/css/ie6.css?t6kx91" media="all" />
+<![endif]-->
+  <script type="text/javascript" src="./How to use SLURM _ system_files/jquery.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/jquery-extend-3.4.0.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/jquery-html-prefilter-3.5.0-backport.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/jquery.once.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/drupal.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/form-single-submit.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/he_IZH86V5CjCi6n-xgP_asMwKByqMDoyQjvpv_MS2hk58.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/cookie.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/accessiblity.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/my-jquery-script.js"></script>
+<script type="text/javascript" src="./How to use SLURM _ system_files/sweetalert.min.js"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, {"basePath":"\/system\/","pathPrefix":"","setHasJsCookie":0,"ajaxPageState":{"theme":"jean","theme_token":"FtKZCCRE3Zt9jHBXZne8vXGPFpaZVnXzRx2DkLRrtNU","js":{"misc\/jquery.js":1,"misc\/jquery-extend-3.4.0.js":1,"misc\/jquery-html-prefilter-3.5.0-backport.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"misc\/form-single-submit.js":1,"public:\/\/languages\/he_IZH86V5CjCi6n-xgP_asMwKByqMDoyQjvpv_MS2hk58.js":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/js\/cookie.js":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/js\/accessiblity.js":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/js\/my-jquery-script.js":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/sweetalert-master\/dist\/sweetalert.min.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.base-rtl.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.menus-rtl.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.messages-rtl.css":1,"modules\/system\/system.theme.css":1,"modules\/system\/system.theme-rtl.css":1,"sites\/all\/modules\/ldap\/ldap_user\/ldap_user.css":1,"sites\/all\/modules\/calendar\/css\/calendar_multiday.css":1,"sites\/all\/modules\/date\/date_api\/date.css":1,"sites\/all\/modules\/date\/date_api\/date-rtl.css":1,"modules\/field\/theme\/field.css":1,"modules\/field\/theme\/field-rtl.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/search\/search-rtl.css":1,"modules\/user\/user.css":1,"modules\/user\/user-rtl.css":1,"sites\/all\/modules\/views.2014-11-25\/css\/views.css":1,"sites\/all\/modules\/views.2014-11-25\/css\/views-rtl.css":1,"sites\/all\/modules\/ckeditor\/css\/ckeditor.css":1,"sites\/all\/modules\/ckeditor\/css\/ckeditor-rtl.css":1,"sites\/all\/modules\/ctools.2014-11-25\/css\/ctools.css":1,"sites\/all\/modules\/ldap\/ldap_servers\/ldap_servers.admin.css":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/font-awesome-4.7.0\/css\/font-awesome.min.css":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/css\/accessibility_css.css":1,"themes\/bartik\/css\/layout.css":1,"themes\/bartik\/css\/layout-rtl.css":1,"themes\/bartik\/css\/style.css":1,"themes\/bartik\/css\/style-rtl.css":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/css\/colors.css":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/css\/jean.css":1,"sites\/csnew.cs.tau.ac.il\/themes\/jean\/sweetalert-master\/dist\/sweetalert.css":1,"themes\/bartik\/css\/print.css":1,"themes\/bartik\/css\/ie.css":1,"themes\/bartik\/css\/ie-rtl.css":1,"themes\/bartik\/css\/ie6.css":1}},"urlIsAjaxTrusted":{"\/system\/searchview":true}});
+//--><!]]>
+</script>
+</head>
+<body class="html not-front not-logged-in one-sidebar sidebar-first page-node page-node- page-node-311 node-type-instructions footer-columns form-single-submit-processed"><div class="accessibility-menu" id="block-menu-accessibility-menu"><div class="accessibility-menu"><a href="https://www.cs.tau.ac.il/system/slurm#block-menu-accessibility-menu" id="accessibility-menu-link">Accessibility<span class="element-invisible"></span></a></div>  <ul class="menu clearfix"><li class="menu-item-2068"><a href="https://www.cs.tau.ac.il/system/slurm#" class="increase_font_size accessibility-li">Increase Font</a></li><li class="menu-item-2067"><a href="https://www.cs.tau.ac.il/system/slurm#" class="decrease_font_size accessibility-li">Decrease Font</a></li><li class="menu-item-2075"><a href="https://www.cs.tau.ac.il/system/slurm#" class="reset_font_size accessibility-li">Reset Font Size</a></li><!--<li class="menu-item-2071"><a href="#" class="grayscale accessibility-li">Grayscale</a></li>--><li class="menu-item-2070"><a href="https://www.cs.tau.ac.il/system/slurm#" class="high-contrast accessibility-li">High Contrast</a></li><li class="menu-item-2076"><a href="https://www.cs.tau.ac.il/system/slurm#" class="negative-contrast accessibility-li">Negative Contrast</a></li><!--<li class="menu-item-2077"><a href="#" class="highlight-links accessibility-li">Highlight Links</a></li>--><li class="menu-item-2080"><a href="https://www.cs.tau.ac.il/system/slurm#" class="reset-setting accessibility-li">Reset Setting</a></li><!--<li class="menu-item-2079"><a href="" class="accessibility-declaration accessibility-li" target="_blank">Disclaimer</a></li> --></ul></div>
+  <div id="skip-link">
+    <a href="https://www.cs.tau.ac.il/system/slurm#main-content" class="element-invisible element-focusable">דילוג לתוכן העיקרי</a>
+  </div>
+    
+<div id="TOP"> 
+<div id="page-wrapper"><div id="page">
+
+  <div id="header" class="without-secondary-menu"><div class="section clearfix">
+
+          <!--<a href="/system/" title="דף הבית" rel="home" id="logo">-->
+        <img src="./How to use SLURM _ system_files/cs_new_logo.png" alt="ביה&#39;&#39;ס למדעי המחשב ע&#39;&#39;ש בלבטניק"> 
+      <!--</a>-->
+    
+          <div id="name-and-slogan" class="element-invisible">
+
+                              <div id="site-name" class="element-invisible">
+              <strong>
+                <a href="https://www.cs.tau.ac.il/system/" title="דף הבית" rel="home"><span>system</span></a>
+              </strong>
+            </div>
+                  
+        
+      </div> <!-- /#name-and-slogan -->
+    
+    
+          <div id="main-menu" class="navigation">
+        <h2 class="element-invisible">תפריט ראשי</h2><ul id="main-menu-links" class="links clearfix"><li class="menu-242 first"><a href="https://www.cs.tau.ac.il/system/">Home</a></li>
+<li class="menu-1833 active-trail"><a href="https://www.cs.tau.ac.il/system/node/303" class="active-trail">הוראה מקוונת</a></li>
+<li class="menu-348"><a href="https://www.cs.tau.ac.il/system/Faq">FAQ</a></li>
+<li class="menu-346"><a href="https://www.cs.tau.ac.il/system/systemforms" title="List of files">טפסים</a></li>
+<li class="menu-431"><a href="https://www.cs.tau.ac.il/system/services">שירותים</a></li>
+<li class="menu-701"><a href="https://www.cs.tau.ac.il/system/downloads">תוכנות להורדה</a></li>
+<li class="menu-800 last"><a href="https://www.cs.tau.ac.il/system/research_develop">לחוקר ולמפתח</a></li>
+</ul>      </div> <!-- /#main-menu -->
+    
+    
+  </div></div> <!-- /.section, /#header -->
+
+  
+  
+  <div id="main-wrapper" class="clearfix"><div id="main" class="clearfix">
+
+          <div id="breadcrumb"><h2 class="element-invisible">הינך נמצא כאן</h2><div class="breadcrumb"><a href="https://www.cs.tau.ac.il/system/">דף הבית</a> » <a href="https://www.cs.tau.ac.il/system/node/303">הוראה מקוונת</a></div></div>
+    
+          <div id="sidebar-first" class="column sidebar"><div class="section">
+          <div class="region region-sidebar-first">
+    <div id="block-views-exp-searchview-page" class="block block-views">
+
+    <h2>חיפוש</h2>
+  
+  <div class="content">
+    <form action="https://www.cs.tau.ac.il/system/searchview" method="get" id="views-exposed-form-searchview-page" accept-charset="UTF-8"><div><div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+          <div id="edit-search-api-views-fulltext-wrapper" class="views-exposed-widget views-widget-filter-search_api_views_fulltext">
+                        <div class="views-widget">
+          <label for="edit-search-api-views-fulltext" id="search-lable-hidden">search: </label><div class="form-item form-type-textfield form-item-search-api-views-fulltext">
+ <input type="text" id="edit-search-api-views-fulltext" name="search_api_views_fulltext" value=" " size="30" maxlength="128" class="form-text">
+</div>
+        </div>
+                  <div class="description">
+            (לפחות 4 תווים)          </div>
+              </div>
+                    <div class="views-exposed-widget views-submit-button">
+      <input type="submit" id="edit-submit-searchview" value="חיפוש" class="form-submit">    </div>
+      </div>
+</div>
+</div></form>  </div>
+</div>
+<div id="block-menu-menu-main-cust" class="block block-menu">
+
+    
+  <div class="content">
+    <ul class="menu clearfix"><li class="first leaf"><a href="https://www.cs.tau.ac.il/system/Faq" title="">FAQ</a></li>
+<li class="leaf"><a href="https://www.cs.tau.ac.il/system/systemforms" title="">טפסים</a></li>
+<li class="leaf"><a href="https://www.cs.tau.ac.il/system/downloads" title="">תוכנות להורדה</a></li>
+<li class="leaf"><a href="https://www.cs.tau.ac.il/system/video" title="">וידאו</a></li>
+<li class="leaf"><a href="https://www.cs.tau.ac.il/system/staff" title="">Staff</a></li>
+<li class="leaf"><a href="https://www.cs.tau.ac.il/system/monitor" title="">Monitoring</a></li>
+<li class="last leaf"><a href="https://www.cs.tau.ac.il/system/Links" title="">Website Links</a></li>
+</ul>  </div>
+</div>
+  </div>
+      </div></div> <!-- /.section, /#sidebar-first -->
+    
+    <div id="content" class="column"><div class="section">
+            <a id="main-content"></a>
+                    <h1 class="title" id="page-title">
+          How to use SLURM        </h1>
+                          <div class="tabs">
+                  </div>
+                        <div id="node-311" class="node node-instructions node-full clearfix">
+
+      
+  
+  <div class="content clearfix">
+    <div class="field field-name-body field-type-text-with-summary field-label-hidden"><div class="field-items"><div class="field-item even"><p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#What%20is%20Slurm" name="Top" style="scroll-behavior: unset;" id="Top">What is Slurm?</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Hardware%20and%20Partitions" style="scroll-behavior: unset;">Hardware and Partitions</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Software" style="scroll-behavior: unset;">Softw</a></span></span><a href="https://www.cs.tau.ac.il/system/slurm#Software" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">are</a></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#User%20packages" style="scroll-behavior: unset;">User packages</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Using%20Slurm" style="scroll-behavior: unset;">Using Slurm</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Resources" style="scroll-behavior: unset;">Resources</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Priority" style="scroll-behavior: unset;">Initial Priority at Submit</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#decide" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">How does Slurm decide what job to start next?</a></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Useful%20commands" style="scroll-behavior: unset;">Useful commands</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Launching%20Jobs" style="scroll-behavior: unset;">Launching Jobs</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Using%20containers" style="scroll-behavior: unset;">Using containers</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#udocker" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">Using udocker</a></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><a href="https://www.cs.tau.ac.il/system/slurm#migrating%20from%20condor">Migrating from condor</a></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#common" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">Common Errors/Problems</a></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Code%20of%20Conduct" style="scroll-behavior: unset;">Code of Conduct</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="http://gpumon.cs.tau.ac.il/" target="_blank">GPU Monitor</a></span></span></p>
+<p class="Slurm_1" dir="ltr" style="scroll-behavior: unset;"><strong style="font-family: arial, helvetica, sans-serif; color: rgb(0, 0, 0); font-size: 1.357em; scroll-behavior: unset;"><a name="What is Slurm" style="scroll-behavior: unset;" id="What is Slurm"></a><span style="font-size: 18px; scroll-behavior: unset;">What is Slurm?</span></strong></p>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Slurm is a resource manager and job scheduler designed to utilize a fair share of the computing resources.</span></span></h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Contrary to normal (or local) program execution, programs (jobs) run via SLURM are launched from the Login (or Controller) server and are sent to one or more of the physical servers (Nodes). SLURM is software that helps defining and executing these jobs, as well as managing users, permissions and resource allocation. It helps track and display job details as well.</span></span></h3>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h2 class="Slurm_1" dir="ltr" id="Slurm_1" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><strong style="scroll-behavior: unset;"><a name="Hardware and Partitions" style="scroll-behavior: unset;" id="Hardware and Partitions"></a>Hardware and Partitions</strong></span></span></h2>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">The cluster is made up of one Controller, several cluster nodes and ‘cluster clients’.</span></span></h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">The ‘</span><strong style="font-size: 16px; font-family: arial, helvetica, sans-serif; scroll-behavior: unset;">cluster clients</strong><span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">’ are servers (GPU servers) named </span><strong style="font-size: 16px; font-family: arial, helvetica, sans-serif; scroll-behavior: unset;">c-[001-010]</strong><span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">, to which users log on via ssh to slurm-client.cs.tau.ac.il&nbsp; and are automatic routed to one of the clients.&nbsp;&nbsp;</span><span style="font-size:16px;">This login node is your starting point for submitting jobs, checking job status, and managing your SLURM tasks</span></h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">The ‘</span><strong style="font-size: 16px; font-family: arial, helvetica, sans-serif; scroll-behavior: unset;">cluster nodes</strong><span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">’ are servers on which the jobs run </span><strong style="font-size: 16px; font-family: arial, helvetica, sans-serif;">n-[001-003]/s-[001-006]</strong><span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">. Although not identical to each other, each Node has two Xeon CPUs, several Nvidia GPUs and a considerable amount of RAM.</span></h3>
+<p dir="ltr">&nbsp;</p>
+<table class="plain" style="border-collapse: collapse; width: 690px; background-color: rgb(255, 255, 255);"><caption>
+		l</caption>
+<thead><tr><th scope="col">
+				GPU</th>
+<th scope="col">
+				Feature</th>
+<th scope="col">
+				שם מחשב</th>
+</tr></thead><tbody style="border-top: 1px solid rgb(204, 204, 204);"><tr><td dir="ltr">
+				56</td>
+<td dir="ltr">
+				NVIDIA GeForce RTX 3090</td>
+<td dir="ltr">
+				n-<strong>3</strong>xx</td>
+</tr><tr><td dir="ltr">
+				20</td>
+<td dir="ltr">
+				A5000</td>
+<td dir="ltr">
+				n-5xx</td>
+</tr><tr><td dir="ltr">
+				16</td>
+<td dir="ltr">
+				A6000</td>
+<td dir="ltr">
+				n-6xx</td>
+</tr><tr><td dir="ltr">
+				8</td>
+<td dir="ltr">
+				AMD</td>
+<td dir="ltr">
+<p>n-2xx</p>
+</td>
+</tr><tr><td dir="ltr">
+				16</td>
+<td dir="ltr">
+				NVIDIA H100-80GB HBM3</td>
+<td dir="ltr">
+				n-1xx</td>
+</tr><tr><td dir="ltr">
+				16</td>
+<td dir="ltr">
+				&nbsp;Tesla V100-SXM2-32GB</td>
+<td dir="ltr">
+				rack-xxx-dgx1</td>
+</tr><tr><td dir="ltr">
+				8</td>
+<td dir="ltr">
+				Quadro RTX 8000</td>
+<td dir="ltr">
+				&nbsp;rack-omerl-g01</td>
+</tr><tr><td dir="ltr">
+				40</td>
+<td dir="ltr">
+				L40S</td>
+<td dir="ltr">
+				n-8xx</td>
+</tr><tr><td dir="ltr">
+				32</td>
+<td dir="ltr">
+				NVIDIA GeForce RTX 2080 Ti</td>
+<td dir="ltr">
+				n-2xx</td>
+</tr><tr><td dir="ltr">
+				40</td>
+<td dir="ltr">
+				Nvidia Titan XP</td>
+<td dir="ltr">
+				s-xxx</td>
+</tr></tbody></table><h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">The ‘</span><strong style="font-size: 16px; font-family: arial, helvetica, sans-serif; scroll-behavior: unset;">CPU nodes</strong><span style="font-size: 16px; font-family: arial, helvetica, sans-serif; font-weight: inherit;">’ For jobs that need CPU only (cpu-killable partition)</span></h3>
+<table class="plain" style="border-collapse: collapse; width: 690px; background-color: rgb(255, 255, 255);"><caption>
+		l</caption>
+<thead><tr><th scope="col">
+				CPU</th>
+<th scope="col">
+				Feature</th>
+<th scope="col">
+				שם מחשב</th>
+</tr></thead><tbody style="border-top: 1px solid rgb(204, 204, 204);"><tr><td dir="ltr">
+				&nbsp;21*40</td>
+<td dir="ltr">
+				Intel(R) Xeon(R) CPU E5-2680 v2 @ 2.80GHz</td>
+<td dir="ltr">
+<p>rack-iscb-[01-21]</p>
+</td>
+</tr><tr><td dir="ltr">
+				9*72</td>
+<td dir="ltr">
+				Intel(R) Xeon(R) CPU E5-2699 v3 @ 2.30GHz</td>
+<td dir="ltr">
+				rack-iscb-[31-39]</td>
+</tr><tr><td dir="ltr">
+				256</td>
+<td dir="ltr">
+				AMD EPYC 7713 64-Core Processor</td>
+<td dir="ltr">
+				rack-ai-01</td>
+</tr></tbody></table><h3 dir="ltr" style="scroll-behavior: unset;">
+	<font face="arial, helvetica, sans-serif" style="font-weight: inherit; font-size: 14px;"><span style="font-size: 16px;">On CS Cluster hardware and prioritazion are managed using partitions constraints. You specify a partition using&nbsp;</span></font><span style="font-weight: inherit; font-size: 14px;">&nbsp;</span><code class="docutils literal notranslate" style="font-weight: inherit; padding: 2px 5px; font-size: 12px; font-family: SFMono-Regular, Menlo, Monaco, Consolas, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, Courier, monospace; background: rgb(255, 255, 255); box-sizing: border-box; white-space: nowrap; max-width: 100%; border: 1px solid rgb(225, 228, 229); color: rgb(231, 76, 60); overflow-x: auto;"><span class="pre" style="box-sizing: border-box;">--partition</span></code><span style="font-weight: inherit; color: rgb(64, 64, 64); font-family: Lato, proxima-nova, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-size: 16px; background-color: rgb(252, 252, 252);">&nbsp;in your job script in order for your job to run on the appropriate type of node using&nbsp;</span><font face="arial, helvetica, sans-serif" style="font-weight: inherit; font-size: 14px;"><span style="font-size: 16px;">&nbsp;</span></font><span style="font-weight: inherit; font-size: 14px;">&nbsp;</span><code class="docutils literal notranslate" style="font-weight: inherit; padding: 2px 5px; font-size: 12px; font-family: SFMono-Regular, Menlo, Monaco, Consolas, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, Courier, monospace; background: rgb(255, 255, 255); box-sizing: border-box; white-space: nowrap; max-width: 100%; border: 1px solid rgb(225, 228, 229); color: rgb(231, 76, 60); overflow-x: auto;"><span class="pre" style="box-sizing: border-box;">--constraint</span></code><span style="font-weight: inherit; color: rgb(64, 64, 64); font-family: Lato, proxima-nova, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-size: 16px; background-color: rgb(252, 252, 252);">&nbsp; to specify a specific hardware in the partition</span>.</h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	A list of the available partitions can be obtained using the&nbsp;<code style="padding-right: 0.294118em; padding-left: 0.294118em; font-size: 0.85em; font-family: var(--md-code-font-family); background-color: var(--md-code-bg-color); font-weight: inherit; color: var(--md-code-fg-color); box-sizing: inherit; font-feature-settings: &quot;kern&quot;; direction: ltr; border-radius: 0.1rem; -webkit-box-decoration-break: clone; transition: background-color 125ms ease 0s; word-break: break-word; -webkit-tap-highlight-color: transparent; outline: none; letter-spacing: -0.25px;">sinfo</code><span style="font-weight: inherit; color: rgba(0, 0, 0, 0.87); font-family: canada-type-gibson; font-size: 19.8px; letter-spacing: -0.25px; background-color: rgb(255, 255, 255);">&nbsp;</span>command.<span style="font-weight: inherit; font-size: 14px;">&nbsp;</span></h3>
+<p dir="ltr">&nbsp;</p>
+<table class="plain" style="border-collapse: collapse; width: 690px; background-color: rgb(255, 255, 255);"><caption>
+		l</caption>
+<thead><tr><th class="rtecenter" scope="col">
+				Max Run Time</th>
+<th class="rtecenter" scope="col">
+				Notes</th>
+<th class="rtecenter" scope="col">
+				Partition name</th>
+<th class="rtecenter" scope="col">
+				Group</th>
+</tr></thead><tbody style="border-top: 1px solid rgb(204, 204, 204);"><tr><td class="rteleft" dir="ltr">
+				&nbsp;1 day</td>
+<td class="rteleft" dir="ltr">
+				Default partition&nbsp;</td>
+<td class="rteleft" dir="ltr">
+				killable</td>
+<td class="rteleft" dir="ltr">
+				Research</td>
+</tr><tr><td class="rteleft" dir="ltr">
+				1 day</td>
+<td class="rteleft" dir="ltr">
+				Partition for a100 resources only</td>
+<td class="rteleft" dir="ltr">
+				gpu-h100-killable</td>
+<td class="rteleft" dir="ltr">
+				Research</td>
+</tr><tr><td class="rteleft" dir="ltr">
+				1-5 days</td>
+<td class="rteleft" dir="ltr">
+				Priority partition. You need to get permission to use it!</td>
+<td class="rteleft" dir="ltr">
+				gpu-&lt;research-group&gt;</td>
+<td class="rteleft" dir="ltr">
+				Research</td>
+</tr><tr><td class="rteleft" dir="ltr">
+				5 days</td>
+<td class="rteleft" dir="ltr">
+				For CPU jobs</td>
+<td class="rteleft" dir="ltr">
+				cpu-killable</td>
+<td class="rteleft" dir="ltr">
+				Research</td>
+</tr><tr><td class="rteleft" dir="ltr">
+				&nbsp;1 day</td>
+<td class="rteleft" dir="ltr">
+				Low Priority partition&nbsp;</td>
+<td class="rteleft" dir="ltr">
+				studentkillable</td>
+<td class="rteleft" dir="ltr">
+				Students</td>
+</tr><tr><td class="rteleft" dir="ltr">
+				3 day</td>
+<td class="rteleft" dir="ltr">
+				For batch jobs - Limit 6 batch jobs per user</td>
+<td class="rteleft" dir="ltr">
+				studentbatch</td>
+<td class="rteleft" dir="ltr">
+				Students</td>
+</tr><tr><td class="rteleft" dir="ltr">
+				3 Hours</td>
+<td class="rteleft" dir="ltr">
+				Open interactive session - Mainly for testing</td>
+<td class="rteleft" dir="ltr">
+				studentrun</td>
+<td class="rteleft" dir="ltr">
+				Students</td>
+</tr></tbody></table><h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">SSH connections are only performed to the Controller and ‘<strong style="scroll-behavior: unset;">cluster clients</strong>’. Users cannot connect directly to the nodes.</span></span></h3>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h2 class="Slurm_1" dir="ltr" id="Slurm_1" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><strong style="scroll-behavior: unset;"><a name="Software" style="scroll-behavior: unset;" id="Software"></a>Software</strong></span></span></h2>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">All servers share the same OS, Ubuntu (focal,&nbsp;jammy, noble) .</span></span></h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Packages installed on the nodes (clients and cluster):</span></span></h3>
+<ul dir="ltr" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<h3 dir="ltr" style="scroll-behavior: unset;">
+			<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Nvidia Drivers&nbsp;</span></span></h3>
+</li>
+</ul><ul dir="ltr" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<h3 dir="ltr" style="scroll-behavior: unset;">
+			<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">CUDA&nbsp;</span></span></h3>
+</li>
+<li style="scroll-behavior: unset;">
+		<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">nvcc&nbsp;&nbsp;</span></span></li>
+</ul><ul dir="ltr" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<h3 dir="ltr" style="scroll-behavior: unset;">
+			<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Python3</span></span></h3>
+</li>
+</ul><p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h2 class="Slurm_1" dir="ltr" id="Slurm_1" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><strong style="scroll-behavior: unset;"><a name="User packages" style="scroll-behavior: unset;" id="User packages"></a>User packages</strong></span></span></h2>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">You will most likely need to install additional packages to use for your own workDef.</span></span></h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Creating a virtual environment using <a href="https://www.anaconda.com/products/individual" style="scroll-behavior: unset;">Anaconda </a>is supported.</span></span></h3>
+<h3 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">Set up your own python environment on your netapp storage.</span></span></h3>
+<p class="Slurm_1" dir="ltr" id="Slurm_1" style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><u style="scroll-behavior: unset;"><strong style="scroll-behavior: unset;">Example</strong></u></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><span style="scroll-behavior: unset;">cd /home/&lt;YOUR-COURSE/LAB-PATH&gt;</span>
+
+<span style="scroll-behavior: unset;">wget repo.anaconda.com/archive/Anaconda3-2020.11-Linux-x86_64.sh
+
+bash Anaconda3-2020.11-Linux-x86_64.sh
+
+Welcome to Anaconda3 2020.11 (Follow the interactive instructions)…
+
+Anaconda3 will now be installed into this location:
+
+- Press ENTER to confirm the location
+
+- Press CTRL-C to abort the installation</span>
+
+<span style="scroll-behavior: unset;"><font color="#ff0000" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">- Or specify a different location below ## CHANGE THE PREFIX TO YOUR PATH</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">[&lt;SUGGESTED-PATH&gt;/anaconda3] &gt;&gt;&gt; </b></font><font color="#ff0000" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">&lt;YOUR-PATH&gt;/</b></font><font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">anaconda3</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">.</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">.</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">.</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">Do you wish the installer to initialize Anaconda3</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">by running conda init? [yes|no] ##(This will change your .bashrc file for future sessions)</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">[no] &gt;&gt;&gt; yes</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">.</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">.</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">.</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">Thank you for installing Anaconda3!</b></font>
+
+<font color="#343332" style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">===========================================================================</b></font></span></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#ff0000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">**Note</b></font></font><font color="#ff0000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"> </font></font><font color="#141412" style="scroll-behavior: unset;">(do NOT install in your HOME-DIR as you don’t have enough quota for it)</font></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><font color="#ff0000" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">**Note</b></font></font><font color="#ff0000" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">&nbsp;</font><font color="#141412" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">(Change location of package dirs path&nbsp;</font><span style="background-color: rgb(227, 230, 232); color: rgb(35, 38, 41); font-family: ui-monospace, &quot;Cascadia Mono&quot;, &quot;Segoe UI Mono&quot;, &quot;Liberation Mono&quot;, Menlo, Monaco, Consolas, monospace; font-size: 13px; white-space: pre-wrap;">conda config --add pkgs_dirs &lt;path&gt;)</span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">Make sure to set the PATH environment variable in order to point to your netapp storage installation in your shell’s .Xrc file (the Anaconda installation does this automatically for bash). If not, your default python or pip commands will not point to your personal network installation but to the version already installed by root on the specific machine you are running on.</font></span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">After Anaconda is successfully installed, Best practice will be to create your env. using&nbsp;</font></span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="color: rgb(52, 51, 50); font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace; background-color: rgba(40, 40, 0, 0.06); white-space-collapse: preserve;">(base) &lt;user&gt;@c-002:~$</span><b style="color: rgb(52, 51, 50); font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace; background-color: rgba(40, 40, 0, 0.06); white-space-collapse: preserve; scroll-behavior: unset;"> conda create -y -n &lt;env_name&gt; python=&lt;python_version&gt;</b></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="white-space-collapse: preserve; color: rgb(52, 51, 50); font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace; background-color: rgba(40, 40, 0, 0.06);">(base) &lt;user&gt;@c-002:~$</span><b style="white-space-collapse: preserve; color: rgb(52, 51, 50); font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace; background-color: rgba(40, 40, 0, 0.06); scroll-behavior: unset;"> conda activate </b><b style="white-space-collapse: preserve; color: rgb(52, 51, 50); font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace; background-color: rgba(40, 40, 0, 0.06); scroll-behavior: unset;">&lt;env_name&gt;</b></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">Then you can install any package you need via</font><font color="#000000" style="scroll-behavior: unset;"> </font><span style="color: rgb(255, 0, 0); scroll-behavior: unset;">conda install</span><font color="#000000" style="scroll-behavior: unset;"> or </font><span style="color: rgb(255, 0, 0); scroll-behavior: unset;">pip install</span></span><font color="#000000" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">.&nbsp;</span></font></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">(env_name) &lt;user&gt;@c-002:~$ conda deactivate</font></span></span></span></pre><p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h1 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<strong style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><a name="Using Slurm" style="scroll-behavior: unset;" id="Using Slurm"></a>Using Slurm</font></span></span></strong></h1>
+<p></p>
+<p dir="ltr" style="margin-top: 0.5em; margin-bottom: 0.5em; color: rgb(32, 33, 34); font-family: sans-serif; font-size: 14px; background-color: rgb(255, 255, 255);"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><span style="font-size:16px;">To submit jobs to CS SLURM , you need to access the system through the following login node:&nbsp;</span></font></span></span></p>
+<p dir="ltr" style="margin-top: 0.5em; margin-bottom: 0.5em; color: rgb(32, 33, 34); font-family: sans-serif; font-size: 14px; background-color: rgb(255, 255, 255);"><strong style="color: rgb(59, 59, 59); font-family: Arial, Helvetica, sans-serif; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><span style="font-size:16px;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; slurm-client.cs.tau.ac.il</span></font></span></span></strong></p>
+<p>	<span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><span style="font-family: sans-serif; font-size: 16px;">This login node is your starting point for submitting jobs, checking job status, and managing your SLURM tasks</span></font></span></span></p>
+<h3 dir="ltr" role="heading" style="color: rgb(0, 0, 0); margin-top: 0.3em; margin-bottom: 0px; padding-top: 0.5em; padding-bottom: 0px; overflow: hidden; font-size: 1.2em; line-height: 1.6; font-weight: bold; font-family: sans-serif; background-color: rgb(255, 255, 255);">
+	<span class="mw-headline" id="Requirements_for_Access" style="font-size: 1.2em;">Requirements for Access</span><strong style="font-size: 1.143em; color: rgb(59, 59, 59); font-family: Arial, Helvetica, sans-serif; scroll-behavior: unset;"><span style="font-size: 18px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">:</font></span></span></strong></h3>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font size="3" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">You must be part of cs slurm groups to access the resources. Fill this form <a href="https://www.cs.tau.ac.il/system/SlurmRequestForm">here.</a>&nbsp;If you’re studying a relevant course – your supervising TA will make a request to add you to the right partition .<br><u>University Credentials</u>: Use your TAU username and password to log in.</span></font></font></span><br>
+	&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font size="3" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;">To access the system use ssh, use the following example:</span></font></font></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><span style="color:#339966;"><font style="scroll-behavior: unset;"><span style="font-size:14px;"><em>#Replace 'your_username' with your actual TAU username</em></span></font></span><font color="#343332" style="scroll-behavior: unset;">
+ssh <em>your_username</em>@</font></span></span><span style="font-size:16px;">slurm-client.cs.tau.ac.il</span></span></pre><p dir="ltr"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="color: rgb(32, 33, 34); background-color: rgb(255, 255, 255);">Your connection will be automatically routed to one of the clients nodes: c-001.cs.tau.ac.il -c-010.cs.tau.ac.il</span></span></span><br><span style="font-size: 16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">Note: CS servers are not accessible from outside the University, so if you’re working outside the campus you will need to connect to the TAU network via the University VPN as described in the following link:&nbsp;</font></span></span><a href="https://computing.tau.ac.il/helpdesk/remote-access/communication/vpn">https://computing.tau.ac.il/helpdesk/remote-access/communication/vpn<br><strong><span style="color:#ff0000;">W</span></strong></a><strong><span style="color:#ff0000;">arning or Errors related with Host Key - Removed/Rename "/.ssh/known_hosts"&nbsp; file&nbsp;</span></strong></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size:18px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;"><a name="Resources" style="scroll-behavior: unset;" id="Resources"></a>Check your Resources</b></font></font></span></span></h2>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">Slurm has various mechanisms for prioritizing resource allocation. One of these mechanisms is a partition system which prioritizes certain jobs over others on select resources. </font></font></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="color: rgb(51, 51, 51); font-size: 16px; font-family: arial, helvetica, sans-serif;">To check <strong>partitions </strong>available to your user&nbsp;</span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;"><span style="color:#339966;"><span style="font-size:14px;"><em>#Replace 'your_username' with your actual TAU username</em></span></span>
+sacctmgr -P -i show user -s <em>your_username</em></span></span></pre><p dir="ltr"><span style="font-size: 16px;"><span style="font-family: arial, helvetica, sans-serif;">You will get a list of partitions and accounts attach to it( You can use -p for full column with). If you will like to use a partition that is NOT in your default account you MUST use --account (see example below)</span></span></p>
+<div dir="ltr">
+	&nbsp; &nbsp; &nbsp; User&nbsp; &nbsp;Def Acct&nbsp; &nbsp; &nbsp;Admin&nbsp; &nbsp; Cluster&nbsp; &nbsp; Account&nbsp; Partition&nbsp; &nbsp; &nbsp;</div>
+<div dir="ltr">
+	---------- ---------- --------- ---------- ---------- ---------- --------- -</div>
+<div dir="ltr">
+	&nbsp; &nbsp;raanane gpu-students&nbsp; &nbsp; &nbsp; None&nbsp; &nbsp; cluster gpu-students&nbsp; studentrun&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</div>
+<div dir="ltr">
+	&nbsp; &nbsp;raanane gpu-students&nbsp; &nbsp; &nbsp; None&nbsp; &nbsp; cluster gpu-students&nbsp; studentba+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</div>
+<div dir="ltr">
+	&nbsp; &nbsp;raanane gpu-students&nbsp; &nbsp; &nbsp;None&nbsp; &nbsp; cluster&nbsp; gpu-research&nbsp; &nbsp; &nbsp;killable&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+<div dir="ltr">
+	<span style="font-family: arial, helvetica, sans-serif; font-size: 16px;">In the example above user raanane must use --account to use partition 'killable'</span></div>
+<div dir="ltr">
+	&nbsp;</div>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">To check the partitions available to your group</font></font></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">sinfo </font></font></font></span></span></span></pre><p dir="ltr"><span style="color: rgb(51, 51, 51); font-family: arial, helvetica, sans-serif; font-size: 16px;">Output example:</span></p>
+<div dir="ltr">
+	PARTITION&nbsp; &nbsp; AVAIL&nbsp; TIMELIMIT&nbsp; NODES&nbsp; STATE NODELIST</div>
+<div dir="ltr">
+	studentrun&nbsp; &nbsp; &nbsp; up&nbsp; &nbsp; 8:00:00&nbsp; &nbsp; &nbsp; 1&nbsp; &nbsp;idle savant</div>
+<div dir="ltr">
+	studentbatch&nbsp; &nbsp; up 3-00:00:00&nbsp; &nbsp; &nbsp; 1&nbsp; &nbsp;idle savant</div>
+<div>
+	&nbsp;</div>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">To check <strong>resources GPUS/CPU/Memory</strong></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;">sinfo -o "%20N&nbsp; %10c&nbsp; %10m&nbsp; %25f&nbsp; %30G "</span></span><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;"> </font></font></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<b style="color: rgb(20, 20, 18); font-family: arial, helvetica, sans-serif; font-size: 18px; scroll-behavior: unset;"><a name="Priority" style="scroll-behavior: unset;" id="Priority"></a>Initial Priority at Submit time</b></h2>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">When you submit a job on the CS Slurm Cluster, it gets an initial priority. The job's priority at any given time will be a weighted sum of multiple factors we have enabled (are still in fine tuning).</p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;"><span style="color: rgb(51, 153, 102);"><span style="font-size: 14px;"><em>#Check queue - list pending jobs and job priority</em></span></span>
+</span></span><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">squeue -t pending  --format="%.7i %.15Q %.20P %.12u %.20V %.7n %.20R"</span></span></pre><div dir="ltr">
+	The most important factors (high weights) are:</div>
+<div dir="ltr">
+	<u>--partition</u> : Is an amount of nodes (or/and amount of GPU’s) used to enclose the resources a specific lab or researcher has funded. The killable partition is the default, and it is not associated with any lab or researcher. If a specific partition (not killable) is request and there are free resources or resources which are currently used by the killable partition, jobs running in killable partition will be stopped and requeue in order to release these resources.</div>
+<div dir="ltr">
+	<u>Fair Share Factor</u>: This is a score each user is given, which indicates his/hers current priority potential. It is based on the portion of the computing resources that have been allocated and the resources jobs have already consumed on a monthly basis. Each user has a ‘billing account’ that registers how many resources have been allocated and used by the user. When a user submits a new job, Slurm will give a lower/higher priority based on the user's past usage. THE MORE YOU TAKE, THE LESS YOU WILL GET FairShare (FS).</div>
+<div dir="ltr">
+	&nbsp;</div>
+<div dir="ltr">
+	Other factors are:</div>
+<div dir="ltr">
+	&nbsp;</div>
+<div dir="ltr">
+<div>
+		<u>Job size factor</u>: The job size factor correlates to the number of nodes or CPUs the job has requested. The higher the amount of requested CPUs the higher the JobSizeFactor. When there are two jobs with the same amount of requested CPUs, the one with shorter TimeLimit will have higher JobSizeFactor.</div>
+<div>
+		&nbsp;</div>
+<div>
+		<u>Age Factor</u>: The age factor represents the length of time a job has been sitting in the queue and eligible to run. In general, the longer a job waits in the queue, the larger its age factor grows.&nbsp;</div>
+<div>
+		&nbsp;</div>
+<div>
+		<u>TRES Factor</u>: Different weights setting the degree that each TRES Type contributes to the job's priority. Current TRES Types are: CPU, GRES (GPU), Filesystem, Memory, Node, etc. See <a href="https://slurm.schedmd.com/tres.html">https://slurm.schedmd.com/tres.html</a></div>
+<div>
+		&nbsp;</div>
+<div>
+		<a href="https://www.cs.tau.ac.il/system/slurm#Top" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">(Go to top)</a></div>
+</div>
+<div dir="ltr">
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+		<b style="color: rgb(20, 20, 18); font-family: arial, helvetica, sans-serif; font-size: 18px; scroll-behavior: unset;"><a name="decide" style="scroll-behavior: unset;" id="decide"></a>How does Slurm decide what job to start next?</b></h2>
+</div>
+<p dir="ltr">When there are free nodes, an approximate model of SLURM's behavior is this:</p>
+<ul dir="ltr"><li>
+		Step 1: Can the job in position one start now?</li>
+<li>
+		Step 2: If it can, remove it from the queue, start it, and continue with step 1.</li>
+<li>
+		Step 3: If it cannot, look at next job.</li>
+<li>
+		Step 4: Can it start now, without risking that the jobs before it in the queue get a higher START_TIME approximation?</li>
+<li>
+		Step 5: If it can, remove it from the queue, start it, recalculate what nodes are free, look at next job and continue with step 4.</li>
+<li>
+		Step 6: If it cannot, look at next job, and continue with step 4.</li>
+</ul><p dir="ltr">As soon as a new job is submitted and as soon as a job finishes, SLURM restarts with step 1, so most of the time only jobs at the top of the queue are tested for the possibility to start. As a side effect of this restart behavior, START_TIME approximations are normally NOT CALCULATED FOR ALL JOBS.</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">(Go to top)</a></p>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size:18px;"><strong><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><a name="Useful commands" style="scroll-behavior: unset;" id="Useful commands"></a>Useful commands</font></font></span></strong></span></h2>
+<pre class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">sinfo <span style="color:#ffa500;"># <font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;"> </b></font>show all available partitions and nodes</span></font></font></span>
+
+<span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">squeue <span style="color:#ffa500;"># view the queue
+</span>squeue --me<span style="color:#ffa500;"> # shows only your jobs
+</span></font></font></span></span></span>squeue documentaions: <a href="https://slurm.schedmd.com/squeue.html" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px;">https://slurm.schedmd.com/squeue.html
+</a><span style="font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace;">scancel &lt;jobid&gt;</span> <span style="font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace; color: rgb(255, 165, 0);"># cancel a job
+</span>scancel documentaions: <a href="https://slurm.schedmd.com/scancel.html" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px;">https://slurm.schedmd.com/scancel.html</a><a href="https://slurm.schedmd.com/squeue.html" style="font-family: Arial, Helvetica, sans-serif; font-size: 11.998px;"> </a><span style="font-size: 14px; font-family: &quot;courier new&quot;, courier, monospace;"><span style="font-size:16px;"> 
+<span style="scroll-behavior: unset;"><font color="#333333" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">sacct -l -j &lt;jobid&gt; </font></font><span style="color:#ffa500;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"># List accounting info about a job</font></font></span></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">&nbsp;* You can find all information and options for using each command by running 'man &lt;cmd&gt;' or&nbsp; '&lt;cmd&gt; --help' to see the command manual, e.g. 'man sinfo' or 'sinfo --help'</font></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span></p>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size:18px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;"><a name="Launching Jobs" style="scroll-behavior: unset;" id="Launching Jobs"></a>Launching Jobs</b></font></font></span></span></h2>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">The command "sbatch" should be the default command for running jobs. "srun"&nbsp; can be use ONLY in specifics partitions and only for testing and develop.&nbsp;</font></font></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="color: rgb(36, 39, 41); background-color: rgb(255, 255, 255);">With&nbsp;</span></span></span><code style="margin: 0px; padding: 2px 4px; border: 0px; font-variant-numeric: inherit; font-variant-east-asian: inherit; font-stretch: inherit; line-height: inherit; font-family: Consolas, Menlo, Monaco, &quot;Lucida Console&quot;, &quot;Liberation Mono&quot;, &quot;DejaVu Sans Mono&quot;, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, monospace, sans-serif; font-size: 13px; vertical-align: baseline; box-sizing: inherit; background-color: var(--black-075); white-space: pre-wrap; color: rgb(36, 39, 41); border-radius: 3px;">sbatch</code><span style="color: rgb(36, 39, 41); font-family: Arial, &quot;Helvetica Neue&quot;, Helvetica, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);">,<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"> you submit your job and it is handled by Slurm ; you can disconnect, kill your terminal, etc. with no consequence. Your job is no longer linked to a running process</span></span>. Also </span><span style="font-family: Arial, &quot;Helvetica Neue&quot;, Helvetica, sans-serif; font-size: 15px; background-color: rgb(255, 255, 255);"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">f</span></span></span><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="background-color: rgb(255, 255, 255);">ailures involving sbatch jobs typically result in the job being requeued and executed again</span></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="background-color: rgb(255, 255, 255);">The srun command is designed for interactive use, with someone monitoring the output. The output of the application is seen as output of the srun command, typically at the user's terminal</span><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">. F</font></font></span></span></span><span style="background-color: rgb(255, 255, 255); font-family: arial, helvetica, sans-serif; font-size: 16px;">ailures involving srun typically result in an error message being generated with the expectation that the user will respond in an appropriate fashion <strong>- slurm session WILL NOT stop and resources WILL NOT be released</strong>.&nbsp;</span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">Basic options available to the sbatch command in order to request the correct allocation of resources for your jobs (can be used in a script or at the command line):</font></font></span></span></p>
+<table align="left" border="1" cellpadding="1" cellspacing="1" style="width: 500px"><tbody><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Meaning:</span></span></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Option:</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Partition name <strong>(MANDATORY)</strong></span></span></td>
+<td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--partition</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Job name (preferrably one that's easy to identify/manage)</span></span></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--job-name</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Redirect stdout instead of slurm-%j.out in the current directory</span></span></td>
+<td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--output</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Redirect stderr instead of job output file (see -o above)</span></span></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--error</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Maximum duration (in minutes). Default based on the partition</span></span></td>
+<td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--time</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">How to end job when time's up</span></span></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--signal</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Number of cluster servers to be used</span></span></td>
+<td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--nodes</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Number of processes</span></span></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--ntasks</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">CPU cores per process</span></span></td>
+<td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--cpus-per-task</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">CPU memory (in MB)</span></span></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--mem</span></span></td>
+</tr><tr><td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 328px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Ask for X number of GPUs. Also, if you combine this with an -N option, you will get X of GPUs per node which you asked for with -N, not X GPUs total. SLURM does not support having varying number of GPUs per node in a job yet.</span></span></td>
+<td class="rteleft" dir="ltr" style="background-color: rgb(255, 255, 255); width: 131px;">
+				<strong><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--gres=gpu:x</span></span></strong></td>
+</tr><tr><td class="rteleft" dir="ltr" style="width: 328px;">
+<p><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Nodes have&nbsp;features&nbsp;assigned to them . Users can specify which of these&nbsp;features&nbsp;are required by their job using the constraint option.</span></span></p>
+<p><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><strong>Supported Features</strong>: tesla_v100, quadro_rtx_8000, geforce_rtx_3090, titan_xp, geforce_rtx_2080,a100,a5000,a6000,l40s</span></span></p>
+<p>				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><strong>Example:</strong> --constraint=" tesla_v100|quadro_rtx_8000" indicates that the job requires gpu server with features tesla_v100 OR quadro_rtx_8000</span></span></p></td>
+<td class="rteleft" dir="ltr" style="width: 131px;">
+				<span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">--constraint</span></span></td>
+</tr></tbody></table><p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">For more info:&nbsp;<a href="https://slurm.schedmd.com/sbatch.html">https://slurm.schedmd.com/sbatch.html</a></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">Below is an example of how to run a simple batch job with minimum allocation of resources (1 node + 1 GPU):</font></font></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<ol dir="ltr" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<p style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">Write python script - awesome.py:</font></font></span></span></p>
+</li>
+</ol><pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#6c6c6d" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><i style="scroll-behavior: unset;"># Author: Cs System Example</i></font></font></font></span></span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#6c6c6d" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><i style="scroll-behavior: unset;"># Name: awesome.py</i></font></font></font></span></span></span>
+
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">print('hello awesome world')</b></font></font></span></span></span></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<ol dir="ltr" start="2" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<p class="western" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;">Write submit file - awesome.slurm:</span></span></p>
+</li>
+</ol><pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#! /bin/sh</b></font></font></span></span></span>
+
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --job-name=awesome</b></font></font></span></span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --output=&lt;your_dir&gt;/awesome.out </b></font></font></span></span></span># redirect stdout
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --error=&lt;your_dir&gt;/awesome.err </b></font></font></span></span></span># redirect stderr
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --partition=studentbatch </b></font></font></span></span></span># (see resources section)
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --time=1 </b></font></font></span></span></span># max time (minutes)
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --signal=USR1@120 </b></font></font></span></span></span># how to end job when time’s up
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --nodes=1 </b></font></font></span></span></span># number of machines
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --ntasks=1 </b></font></font></span></span></span># number of processes<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">
+#SBATCH --mem=50000 </b></font></font></span></span></span># CPU memory (MB)<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">
+#SBATCH --cpus-per-task=4 </b></font></font></span></span></span># CPU cores per process
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#SBATCH --gpus=1 </b></font></font></span></span></span># GPUs in total
+
+
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">python awesome.py</b></font></font></span></span></span></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<ol dir="ltr" start="3" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<p style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><font size="3" style="scroll-behavior: unset;">Submit job:</font></font></span></p>
+</li>
+</ol><pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">$ sbatch awesome.slurm
+Submitted batch job 214726</font></font></font></span></span></span></pre><p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#000000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">A script can also be directly run from the command line/terminal as follows:</font></font></font></span></span></span></p>
+<ol dir="ltr" style="scroll-behavior: unset;"><li style="scroll-behavior: unset;">
+<p style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#000000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">Shell script - my_awesome_script.sh</font></font></font></span></span></span></p>
+</li>
+</ol><pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;">#! /bin/sh</b></font></font></span>
+<strong><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#000000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">python nlp_is_awesome.py --everything=cool</font></font></font></span></strong></span></span></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;"><span style="scroll-behavior: unset;"><font style="scroll-behavior: unset;"><font color="#000000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">sbatch --job-name=awesome --output=&lt;your_dir&gt;/awesome.out \
+--error=&lt;your_dir&gt;/awesome.err --partition=</font></font><font style="scroll-behavior: unset;"><b style="scroll-behavior: unset;"> </b></font><font color="#000000" style="scroll-behavior: unset;"><font style="scroll-behavior: unset;">studentbatch \
+--time=1440 --signal=USR1@120 --nodes=1 --ntasks=1 --mem=50000 \
+--cpus-per-task=4 --gpus=2 ./my_awesome_script.sh</font></font></font></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">*The job will be executed in a new shell, but from the same directory. This means that relative directories are sensitive to the location from which the job was launched.</font></span></span></p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></span></span><br style="scroll-behavior: unset;"><br>
+	&nbsp;</p>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size: 18px; scroll-behavior: unset;"><strong style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><a name="Using containers" style="scroll-behavior: unset;" id="Using containers"></a>Using containers</font></span></strong></span></h2>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;">Sometimes working with a conda env. is not enough and you require other tools to be installed. Slurm supports work with docker<font color="#3b3b3b" style="scroll-behavior: unset;">.</font></font></span></span></p>
+<h3 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<strong><span style="font-family:arial,helvetica,sans-serif;">Running containers in batch mode:</span></strong></h3>
+<p class="rteindent1" dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">1. Create slurm file like this (run.slurm):</span></span></p>
+<pre dir="ltr"><strong><span style="font-size: 16px;"><font face="arial, helvetica, sans-serif">​<span style="font-family:courier new,courier,monospace;">#!/bin/bash</span></font></span></strong>
+
+<strong><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --job-name=awesome</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --output=sample.out</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --error=sample.err</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --time=150</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --partition=studentkillable</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --gpus=1</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --nodes=1</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --ntasks=1</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --mem=50000 #50,000</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --cpus-per-task=4</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --gpus-per-task=1
+</span></span>
+<span style="font-size: 16px;"><font face="arial, helvetica, sans-serif"><span style="font-family:courier new,courier,monospace;">CMD=/path/to/script.sh
+</span></font></span><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">srun easy_ngc --cmd ${CMD} nvcr.io/nvidia</span></span>/<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">pytorch:</span></span></strong><strong style="font-size: 0.857em;"><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;">20.12-py3</span></span></strong><span style="font-size: 0.857em;"> </span></pre><p dir="ltr"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Remember to change the partition, memory, time and everything to your parameters.</span></span></p>
+<p class="rteindent1" dir="ltr"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">2. Create shell script to run (/path/to/script.sh). In the script you should insert every relevant thing - the command can't be more than 1 word! <strong>For example, ```script.sh -flag``` will NOT work!</strong>:</span></font></p>
+<pre dir="ltr"><span style="font-size: 16px;">​</span>​<strong><span style="font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace;">#!/bin/bash</span></strong>
+
+<strong><span style="font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace;">source ~/.bashrc</span>
+<span style="font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace;">​cd /path/to/python</span>
+<span style="font-size: 16px; font-family: &quot;courier new&quot;, courier, monospace;">​python awesome.py --param1 --param2 "lorem ipsum"
+echo 'Done'</span></strong></pre><p class="rteindent1" dir="ltr"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">3. Verify that the script can be executed:</span></font></p>
+<pre dir="ltr"><span style="font-size: 16px;">​<span style="font-family:courier new,courier,monospace;">&gt; chmod ug+rx /path/to/script.sh</span></span></pre><p class="rteindent1" dir="ltr"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">4. Run:</span></font></p>
+<pre dir="ltr"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px;">​&gt; sbatch run.slurm</span></span></pre><h3 class="western" dir="ltr" style="scroll-behavior: unset;">
+	Possible error:</h3>
+<p dir="ltr"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">If you get an error that looks like this:</span></font></p>
+<pre dir="ltr"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">​usage: easy_ngc_impl [-h] [--cmd CMD] [--version VERSION] [--modules MODULES]
+
+...
+
+--ssh_key_prefix ...
+
+...</span></span></pre><p dir="ltr"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">It is most probably because you used a more than 1 word for the --cmd flag. There is no way to workaround that except for inserting everything into the script of step 2. So, get back to step 2, and then fix your command accordingly. For clarity, this lines:</span></font></p>
+<pre dir="ltr"><span style="font-size:16px;"><strong><span style="font-family:courier new,courier,monospace;">​FULL_CMD=${SCRIPT_PATH}/${SCRIPT_NAME} \
+--flag -f 'string with spaces'</span>
+<span style="font-family:courier new,courier,monospace;">srun easy_ngc --cmd ${FULL_CMD} </span></strong></span><strong style="font-size: 0.857em;"><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;">nvcr.io/nvidia</span></span>/</strong><strong style="font-size: 16px;"><span style="font-family:courier new,courier,monospace;">pytorch</span></strong></pre><p dir="ltr"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">Will cause a problem. C</span></font><span style="font-size: 16px; font-family: arial, helvetica, sans-serif;">hange it like this - inside script.sh:</span><span style="font-family: arial, helvetica, sans-serif; font-size: 16px;">&nbsp;</span></p>
+<pre dir="ltr"><strong><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;">/path/script.sh --flag parameter1 parameter2</span></span>
+</strong></pre><p dir="ltr"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">And inside run.slurm:</span></span></p>
+<pre dir="ltr"><strong><span style="font-size:16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;">​FULL_CMD=${SCRIPT_PATH}/script.sh</span></span>
+<span style="font-family: &quot;courier new&quot;, courier, monospace;"><span style="font-size: 16px;">srun easy_ngc --cmd ${FULL_CMD} </span></span></strong><strong style="font-size: 0.857em;"><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;">nvcr.io/nvidia</span></span>/</strong><strong style="font-size: 0.857em;"><span style="font-family: &quot;courier new&quot;, courier, monospace;"><span style="font-size: 16px;">pytorch</span></span></strong></pre><p class="western" dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p class="western" dir="ltr" style="scroll-behavior: unset;"><strong style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">DL containers from Nvidia (ngc):</font></span></strong></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; </font></span></span></span>srun --gpus=2 --partition=studentrun --pty easy_ngc tensorflow --version=20.11-tf2-py3</pre><p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><span id="docs-internal-guid-e900abf3-7fff-426f-4b95-7c07c2d21dfe"><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">The </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">srun</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;"> command works similarly to </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">sbatch</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">, but runs the job in interactive (blocking) mode. The </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">--pty easy_ngc</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;"> option tells slurm to run the job in a container, which emulates a shell in a safe environment (like Docker). Exiting the container (ctrl+d) ends the job and releases the resource. Besides the </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">--pty</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;"> option, </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">srun</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;"> and </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">sbatch</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;"> share almost all other options, such as </span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">--gpus</span><span style="color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;">.</span></span></span></span></p>
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;">srun documentation:&nbsp;<a href="https://slurm.schedmd.com/srun.html">https://slurm.schedmd.com/srun.html</a></p>
+<div>
+	&nbsp;</div>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; srun -G 3 --pty easy_ngc --cmd nvidia-smi </font></span></span></span><span style="font-size:16px;">nvcr.io/nvidia/pytorch</span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Use 3 GPUs and run the 'nvidia-smi' command using container with latest version of pytorch</font></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; srun -G 2 --pty easy_ngc --jupyter mxnet</font></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Use 2 GPUs and run jupyter notebook server using container with latest version of mxnet</font></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; srun -G 5 --mem 120G --pty easy_ngc \
+</font></span></span></span><span style="font-size:16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;">nvcr.io/nvidia</span>/tensorflow:9.03-py3</span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Use 5 GPUs, allocate 120GB of system memory and use the March 2019 release of Tensorflow NGC container with python 3</font></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; srun -G 2 --pty easy_ngc --modules=imagehash \
+--packages=julia </font></span></span><span style="font-size:16px;">nvcr.io/nvidia/pytorch</span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Use 2 GPUs, run container with latest version of tensorflow, apt-get install julia and pip install imagehash inside container</font></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; srun -G 2 --pty easy_ngc \
+--modules=/home_dir/requirements.txt \
+ </font></span></span><span style="font-size:16px;">nvcr.io/nvidia/tensorflow:20.11-tf2-py3</span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Use 2 GPUs, run container with latest version of tensorflow, pip install list of python packages with latest/specific version (You need to create your own&nbsp;requirements.txt file)</font></span></span></p>
+<h3 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<strong style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Non-DL containers (from Nvidia or elsewhere):</font></span></span></strong></h3>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt; srun -G 3 --pty easy_ngc \
+nvcr.io/hpc/vmd:cuda9-ubuntu1604-egl-1.9.4a17</font></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Pull the VMD HPC container from NGC and run a command line on it (with 3 GPUs)</font></span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="scroll-behavior: unset;"><font color="#343332" style="scroll-behavior: unset;">&gt;srun -G 5 --pty easy_ngc \
+--cmd 'nvidia-smi' docker.io/library/ubuntu:19.10</font></span></span></span></pre><p class="western" dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Pull generic Ubuntu 19.10 container from Dockerhub and run nvidia-smi on it (with 5 GPUs)</font></span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="scroll-behavior: unset;">(Go to top)</a></font></span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<h2 dir="ltr" style="scroll-behavior: unset;">
+	<strong><span style="font-size:18px;"><a name="udocker" id="udocker"><span style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#3b3b3b" style="scroll-behavior: unset;">Using udocker</font></span></span></a></span></strong></h2>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">One might have a need to use a tool that is not installed on school servers. For example, R, gcc-11, python3.9 (without anaconda) and so on. For that, a tool named <a href="https://www.cs.tau.ac.il/system/udocker">udocker</a> is installed. Some examples of using udocker with slurm:</span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><strong><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">Interactive session of R</span></span></strong></p>
+<pre dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">​<span style="font-family:courier new,courier,monospace;">udocker pull rocker/r-base</span></span></span>
+<span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">udocker create --name=r-container rocker/r-base
+srun -p killable --pty udocker run r-container</span></span></span></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;"><strong><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">R script - 2 options. You can also put these lines inside a slurm script:</span></font></strong></p>
+<pre dir="ltr"><span style="font-family:courier new,courier,monospace;"><span style="font-size: 16px;">srun -p killable udocker run \
+--volume=/directory/of/R/script:/name/you/choose \
+r-container R --vanilla -f /name/you/choose/script.r</span></span>
+
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">​srun -p killable udocker run \
+ --volume=/directory/of/R/script:/name/you/choose \
+r-container Rscript /name/you/choose/script.r</span></span></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;"><strong><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">Example of a slurm script that runs R container:</span></span></strong></p>
+<pre dir="ltr"><strong><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">​</span><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;">#!/bin/bash</span></span></span></strong>
+<strong><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">
+#SBATCH --job-name=awesome</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --output=awesome.out
+#SBATCH --partition=cpu-killable
+srun udocker run --bindhome r-container Rscript ~/script.r</span></span></strong></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:16px;">NOTE: when using Rscript, it is recommended to put the following line as first line in the script:</span></span></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><strong><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;">#!/usr/bin/Rscript</span></span></strong></pre><p dir="ltr" style="scroll-behavior: unset;"><font face="arial, helvetica, sans-serif"><span style="font-size: 16px;">NOTE: You might need to change the permisiions of the script, like this:</span></font></p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-size: 16px;">​<font face="arial, helvetica, sans-serif"><span style="font-family:courier new,courier,monospace;"><span style="font-size:14px;"><span style="font-size:16px;">chmod ug+rx /path/to/script.r</span></span></span></font></span></pre><p dir="ltr" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">(Go to top)</a></p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<h2 dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size:18px;"><span style="font-family:arial,helvetica,sans-serif;"><strong><a name="migrating from condor" id="migrating from condor"></a>Migrating from condor</strong></span></span></h2>
+<p dir="ltr">Here is an example of condor '.cmd' file and a matching '.slurm' script. An explanation about the conversion process appears after the example.</p>
+<p dir="ltr">Condor .cmd file:</p>
+<pre dir="ltr"><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">DIR<span style="white-space:pre"> </span>= $ENV(HOME)/condor</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">Executable<span style="white-space:pre"> </span>= $(DIR)/sample1</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">Log<span style="white-space:pre"> </span>= sample1.log</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">Error<span style="white-space:pre"> </span>= sample1.error.$(Process)</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">Output<span style="white-space:pre"> </span>= sample1.output.$(Process)</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">notification<span style="white-space:pre"> </span>= Always</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">Universe<span style="white-space:pre"> </span>= Vanilla</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">Queue 4</span></span></pre><p dir="ltr">&nbsp;</p>
+<p dir="ltr">A matching .slurm script:</p>
+<pre dir="ltr"><strong><span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#!/bin/bash</span></span>
+
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --job-name=sample1</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --output=sample1.output.%A.%a # %j can be useful</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --error=sample1.error.%A.%a</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --partition=studentkillable</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --mail-type=ALL,TIME_LIMIT_80 #notification</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --time=1440 #minutes</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">#SBATCH --array=0-3 #not the same as --ntasks=4
+#SBATCH --gres=gpu:1</span></span> 
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">
+DIR=$HOME/condor</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">EXE=${DIR}/sample1</span></span>
+<span style="font-size:16px;"><span style="font-family:courier new,courier,monospace;">srun ${EXE}</span></span></strong></pre><p dir="ltr">Run the job with:</p>
+<pre dir="ltr"><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;">&gt; sbatch &lt;filename&gt;.slurm</span></span></pre><p dir="ltr" style="scroll-behavior: unset;">NOTE: sample1 execute bit has to be set:</p>
+<pre dir="ltr"><span style="font-size: 16px;"><span style="font-family: &quot;courier new&quot;, courier, monospace;">&gt; chmod ug+rx ~/condor/sample1</span></span></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">Useful environmanet variables are listed here:</p>
+<p dir="ltr" style="scroll-behavior: unset;"><a href="https://slurm.schedmd.com/sbatch.html#SECTION_OUTPUT-ENVIRONMENT-VARIABLES">https://slurm.schedmd.com/sbatch.html#SECTION_OUTPUT-ENVIRONMENT-VARIABLES</a></p>
+<p dir="ltr" style="scroll-behavior: unset;"><strong>Explanation of the conversion process:</strong></p>
+<p dir="ltr" style="scroll-behavior: unset;">The conversion process has 4 parts: 1. Direct conversion, 2. Addition of missing commands/instructions, 3. Elimination of unnecessary lines and 4. Re-ordering of the slurm script to its final form.</p>
+<p dir="ltr" style="scroll-behavior: unset;">Note that in the slurm script the space were removed and the round brackets were replaced with curly brackets. Thst is because slurm scripts are also valid bash scripts.</p>
+<p dir="ltr" style="scroll-behavior: unset;">Here is a table for the Direct conversion:</p>
+<table align="left" border="1" cellpadding="1" cellspacing="1" dir="ltr" style="width: 500px"><thead><tr><th class="rteleft" scope="col">
+				CMD file</th>
+<th class="rteleft" scope="col">
+				slurm file</th>
+</tr></thead><tbody><tr><td class="rteleft">
+<p>DIR = $ENV(HOME)/condor</p>
+<p>Executable = $(DIR)/sample1</p>
+</td>
+<td class="rteleft">
+				EXE="~/condor/sample1"</td>
+</tr><tr><td class="rteleft">
+				Error = &lt;filename&gt;.err.$(Process)</td>
+<td class="rteleft">
+				#SBATCH --error=&lt;filename&gt;.err.%a</td>
+</tr><tr><td class="rteleft">
+				Output = &lt;filename&gt;.out.$(Process)</td>
+<td class="rteleft">
+				#SBATCH --output=&lt;filename&gt;.out.%a</td>
+</tr><tr><td class="rteleft">
+				Arguments = $(Process)</td>
+<td class="rteleft">
+				ARGS=${SLURM_ARRAY_TASK_ID}</td>
+</tr><tr><td class="rteleft">
+				notification = Always</td>
+<td class="rteleft">
+				#SBATCH --mail-type=ALL</td>
+</tr><tr><td class="rteleft">
+				Queue 100</td>
+<td class="rteleft">
+				#SBATCH --array=0-99</td>
+</tr></tbody></table><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">Usually, one needs to add the following to the slurm script:</p>
+<pre dir="ltr" style="scroll-behavior: unset;"><strong><span style="font-family:courier new,courier,monospace;"><span style="font-size:16px;">#!/bin/bash # as a first line 
+
+#SBATCH --account=&lt;relevant-account&gt; 
+#SBATCH --partition=&lt;relevant-partition&gt; 
+#SBATCH --gres=gpu:n
+#SBATCH -c &lt;number of requested CPUs&gt; # optional 
+
+srun ${EXE} ${ARGS}</span></span></strong></pre><p dir="ltr" style="scroll-behavior: unset;">&nbsp;</p>
+<p dir="ltr" style="scroll-behavior: unset;">This lines has no direct replacement, and should be removed (except special cases):</p>
+<pre dir="ltr" style="scroll-behavior: unset;"><span style="font-family:courier new,courier,monospace;"><span style="font-size:14px;"><span style="font-size:16px;">Log = sample.log # can be replaced 
+# using 
+# scontrol show job &lt;job number&gt; 
+# or
+# sacct -j &lt;job-number&gt; 
+
+Universe = Vanilla # should be removed</span></span></span></pre><p dir="ltr">&nbsp;</p>
+<p dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:14px;"><span style="font-size:16px;">Finally, check that the slurm script is well formed: </span></span></span></p>
+<p dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:14px;"><span style="font-size:16px;">1. The line starts with #! (Shebang) should be first line of the file.</span></span></span></p>
+<p dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:14px;"><span style="font-size:16px;">2. After it should be all the lines that start with '#SBATCH'.</span></span></span></p>
+<p dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:14px;"><span style="font-size:16px;">3. Then the variables.</span></span></span></p>
+<p dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:14px;"><span style="font-size:16px;">4. And at last you should add the running line, the line starts with 'srun'.</span></span></span></p>
+<p dir="ltr"><span style="font-family:arial,helvetica,sans-serif;"><span style="font-size:14px;"><span style="font-size:16px;">The example we saw at the beginning show this exactly.</span></span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;"><strong>Possible errors</strong> </span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><span style="font-size:16px;"><span style="font-family:arial,helvetica,sans-serif;">Usually not defining the right account/partition, running on the wrong cluster or not having permissions or resources.</span></span></p>
+<p dir="ltr" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">(Go to top)</a></p>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size: 18px; scroll-behavior: unset;"><strong style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><a name="common" id="common"></a>Common Errors/Problems<br>
+	&nbsp;</font></span></strong></span><span style="font-family: arial, helvetica, sans-serif; font-size: 16px;">Nodes stop recieving jobs. Check node status&nbsp;</span><span style="color: rgb(0, 0, 0); font-family: Arial, sans-serif; font-size: 14.6667px; font-weight: inherit; text-indent: 48px; white-space-collapse: preserve;">sinfo -R -l. </span><span style="font-weight: inherit; font-family: arial, helvetica, sans-serif; font-size: 16px;">&nbsp;</span><span style="font-family: arial, helvetica, sans-serif; font-size: 16px; font-weight: inherit;">Nodes&nbsp; are in "drain or drng" status:&nbsp;</span></h2>
+<p dir="ltr" style="line-height:1.38;text-indent: 36pt;margin-top:12pt;margin-bottom:12pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;">Nodes are being marked as </span><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-style: italic; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;">drained</span><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;"> by SLURM due to jobs that either crash or freeze as a result of </span><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;">Out of Memory (OOM)</span><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;"> conditions. </span></span><span style="color: rgb(0, 0, 0); font-family: Arial, sans-serif; font-size: 11pt; white-space-collapse: preserve; text-indent: 36pt;">In these cases, the job often terminates without returning a proper exit code, which causes SLURM to interpret the node as unresponsive or in an error state, triggering the automatic drain.</span></p>
+<p dir="ltr" style="line-height:1.38;margin-top:12pt;margin-bottom:12pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;">Root Cause:</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: disc; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Jobs exceed the allocated memory limit and are killed by the kernel (OOM killer).</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: disc; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Since the job does not exit cleanly, SLURM cannot register a proper completion status.</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: disc; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:12pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">SLURM then marks the node as </span><span style="font-size: 11pt; font-style: italic; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">drained</span><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;"> to prevent further scheduling, assuming a hardware or system fault.</span></span></p>
+<p dir="ltr" style="line-height:1.38;margin-top:12pt;margin-bottom:12pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;">Recommendations to Avoid This:</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: decimal; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Accurate Memory Requests</span><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">: Ensure jobs request memory (--mem or --mem-per-cpu) that reflects actual usage. Underestimating memory leads to OOM kills.</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: decimal; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Use --mem Limits with Caution</span><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">: If memory usage is unpredictable, consider slightly overestimating to provide a buffer.</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: decimal; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; background-color: rgb(255, 255, 0); font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Enable Job Exit Codes</span><span style="font-size: 11pt; background-color: rgb(255, 255, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">: Where possible, ensure your job scripts or applications handle memory errors gracefully and exit with a proper code.</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: decimal; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; background-color: rgb(255, 255, 0); font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Monitor Usage</span><span style="font-size: 11pt; background-color: rgb(255, 255, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">: Use tools like sacct to analyze past memory usage and adjust future requests accordingly.</span></span></p>
+<p dir="ltr" role="presentation" style="list-style-type: decimal; font-size: 11pt; font-family: Arial, sans-serif; color: rgb(0, 0, 0); font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space: pre;line-height:1.38;margin-top:0pt;margin-bottom:12pt;"><span id="docs-internal-guid-afc7eba0-7fff-db2a-6fd2-6a0b36e6252c"><span style="font-size: 11pt; font-weight: 700; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">Node Health Checks</span><span style="font-size: 11pt; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; text-wrap-mode: wrap;">: If a node is frequently drained, it may be worth checking for memory leaks or misbehaving jobs.</span></span></p>
+<h3 dir="ltr">
+	<strong style="font-size: 18px; scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="font-size: 16px; scroll-behavior: unset;">(Go to top)</a></font></span></strong></h3>
+<h2 class="western" dir="ltr" style="scroll-behavior: unset;">
+	<span style="font-size: 18px; scroll-behavior: unset;"><strong style="scroll-behavior: unset;"><span style="font-family: arial, helvetica, sans-serif; scroll-behavior: unset;"><font color="#141412" style="scroll-behavior: unset;"><a name="Code of Conduct" id="Code of Conduct"></a>Code of Conduct</font></span></strong></span></h2>
+<h3 dir="ltr">
+	Priority algorithms and resource limits have their limitations. Sharing computational resources requires every user to play nice and fair. Be mindful of the fact that other students are using the system and on a typical semester – around 100 students may have permissions on Slurm resources at a time.</h3>
+<h3 dir="ltr">
+	Please follow these guidelines so that everyone can have a positive experience:</h3>
+<ul><li class="rteleft" dir="ltr">
+<h3>
+			<strong>Close idle jobs</strong> – Mostly in “clients-nodes”: The system cannot tell if you’re currently in front of your PC or just left Jupyter Notebook open and went to sleep – these resources could be used by someone else.</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Prefer small jobs over one massive script</strong>: If you can modulate your work – please do. This helps for better job scheduling as well as protects against jobs fails</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Don’t abuse the queue</strong>: For students (gpu-students) we limit 1 GPU per/job but even if there are no limits on the number of jobs you can queue, don’t overflow it.</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Don’t abuse loopholes</strong>: No system is perfect and no system is watertight. If you find a scenario on which you can bypass job, resource or queue limits – please report.</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Don’t overschedule resources</strong>: If you need just one GPU – ask for one GPU. Hogging resources needlessly affects everyone – including you, when calculating priority for future jobs.</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Be nice</strong>: Your work is as important for you as everyone else’s work for them. Use common sense when sending jobs.</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Don’t wait until the last minute</strong>: The cluster tends to be flooded with jobs on the week before a submission deadline. Take that into account when managing your time.</h3>
+</li>
+<li class="rteleft" dir="ltr">
+<h3>
+			<strong>Understand workload management</strong>: The cluster promises to run every job at a reasonable time – it does not promise to run your job RIGHT NOW. Again: Manage your time accordingly.</h3>
+</li>
+</ul><p class="rteleft" dir="ltr"><a href="https://www.cs.tau.ac.il/system/slurm#Top" style="font-family: arial, helvetica, sans-serif; font-size: 16px; scroll-behavior: unset;">(Go to top)</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</div></div></div>  </div>
+
+  
+  
+</div>
+      
+    </div></div> <!-- /.section, /#content -->
+
+    
+  </div></div> <!-- /#main, /#main-wrapper -->
+
+  
+  <div id="footer-wrapper"><div class="section">
+
+          <div id="footer-columns" class="clearfix">
+          <div class="region region-footer-firstcolumn">
+    <div id="block-block-5" class="block block-block">
+
+    <h2>קישורים</h2>
+  
+  <div class="content">
+    <p><a class="external-link" href="http://forums.cs.tau.ac.il/" target="_blank" title="נפתח בחלון חדש">פורומים</a><br><a class="external-link" href="http://www.cs.tau.ac.il/" target="_blank" title="נפתח בחלון חדש">אתר מדעי המחשב</a><br><a class="external-link" href="http://www.tau.ac.il/" target="_blank" title="נפתח בחלון חדש">אוניברסיטת תל-אביב</a><br><a class="external-link" href="http://www.tau.ac.il/passwd" target="_blank" title="נפתח בחלון חדש">החלפת/עידכון סיסמא</a></p>
+<p>&nbsp;</p>
+  </div>
+</div>
+  </div>
+          <div class="region region-footer-secondcolumn">
+    <div id="block-block-7" class="block block-block">
+
+    <h2>טפסים</h2>
+  
+  <div class="content">
+    <div dir="rtl" id="content-core">
+<dl><dt>
+			<span class="summary"><a class="contenttype-link state-published url" href="https://www.cs.tau.ac.il/system/opening_account_win">טופס פתיחת חשבון Windows</a> </span></dt>
+<dt>
+			<span class="summary"><a class="contenttype-link state-published url" href="https://www.cs.tau.ac.il/system/opening_account_guest">טופס בקשת חשבון אורח </a></span></dt>
+<dt>
+			<span class="summary"><a class="contenttype-link state-published url" href="https://www.cs.tau.ac.il/system/guest_account_login_form">Guest Account Request </a></span></dt>
+<dt>
+			<a href="https://www.cs.tau.ac.il/system/quota_start_form"><span class="summary">טופס הגדלת Quota באישור ומימון המנחה&nbsp;ו</span><span class="summary">טופס הגדלת Quota בתשלום לאנשי סגל</span></a></dt>
+<dt>
+			<a href="https://bpm.cs.tau.ac.il/forms/email4life/" target="_blank" title="opens in a new window">טופס בקשת אימייל ודף בית לכל החיים</a></dt>
+</dl></div>
+<p>&nbsp;</p>
+  </div>
+</div>
+  </div>
+          <div class="region region-footer-thirdcolumn">
+    <div id="block-block-8" class="block block-block">
+
+    <h2>תוכנות להורדה</h2>
+  
+  <div class="content">
+    <dl><dt>
+		<span class="summary"><a class="contenttype-document state-published url" href="https://www.cs.tau.ac.il/system/dumpsec1">בדיקת שיתופים מקומיים של המחשב הלוקאלי</a> </span> <span class="documentByLine"> </span></dt>
+<dt>
+		<span class="summary"><a class="contenttype-link state-published url" href="http://winscp.net/eng/download.php" target="_blank" title="opens in a new window">Winscp - העברת קבצים לשרתי ומשרתי Linux - ניתן להוריד מכאן </a> </span> <span class="documentByLine"> </span></dt>
+<dt>
+		<span class="summary"><a class="contenttype-link state-published url" href="http://www.chiark.greenend.org.uk/%7Esgtatham/putty/download.html" target="_blank" title="opens in a new window">Putty - חיבור באמצעות ssh לשרתי Linux</a> </span> <span class="documentByLine"> </span></dt>
+<dt>
+		<span class="summary"><a class="contenttype-link state-published url" href="http://mobaxterm.mobatek.net/" target="_blank" title="opens in a new window">Moba Xterm - חיבור לשרתי Linux שמאפשר הרצת תוכנות בצורה גראפית - ניתן להורדה מכאן</a> </span> <span class="documentByLine"> </span></dt>
+<dt>
+		<span class="summary"><a class="contenttype-link state-published url" href="http://en.sourceforge.jp/projects/ttssh2/" target="_blank" title="opens in a new window">Tera Term - חיבור לשרתי Linux דרך ssh - ניתן להורדה מכאן</a> </span> <span class="documentByLine"> </span></dt>
+</dl>  </div>
+</div>
+  </div>
+              </div> <!-- /#footer-columns -->
+    
+          <div id="footer" class="clearfix">
+          <div class="region region-footer">
+    <div id="block-block-9" class="block block-block">
+
+    
+  <div class="content">
+    <p><a href="http://wave.webaim.org/report#/https://www.cs.tau.ac.il/system/slurm#Using%20Slurm" id="accessibility_checker_id" target="_blank" title="נפתח בחלון חדש"><img alt="wcag2" src="./How to use SLURM _ system_files/wcag-logo.png" style="width: 100px; height: 56px;"></a>&nbsp;&nbsp;<a href="https://validator.w3.org/check?uri=www.cs.tau.ac.il/system/slurm#Using%20Slurm" id="w3c-vi" target="_blank" title="נפתח בחלון חדש"><img alt="w3c checker" src="./How to use SLURM _ system_files/w3c1.png" style="width: 100px; height: 50px;"></a></p>
+  </div>
+</div>
+  </div>
+      </div> <!-- /#footer -->
+    
+  </div></div> <!-- /.section, /#footer-wrapper -->
+
+</div></div> <!-- /#page, /#page-wrapper -->
+</div> <!-- id top -->
+  
+
+</body></html>
