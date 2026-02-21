@@ -6,6 +6,7 @@ Created on Mon Dec  4 16:18:19 2023
 @author: umbertocappellazzo
 """
 import torch
+from tqdm.auto import tqdm
 
 def train_one_epoch(model, loader, optimizer, scheduler, device, criterion):
     model.train(True)
@@ -14,7 +15,9 @@ def train_one_epoch(model, loader, optimizer, scheduler, device, criterion):
     correct = 0
     total = 0
     
-    for idx_batch, (x, y) in enumerate(loader):
+    pbar = tqdm(loader, desc="Training", leave=False)
+    
+    for idx_batch, (x, y) in enumerate(pbar):
         
         optimizer.zero_grad()
         
