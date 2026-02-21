@@ -11,7 +11,7 @@
 
 Additionally, `transformers==4.28.1` depends on an old version of the `tokenizers` library that requires Rust compilation. On Colab's Python 3.12 environment, this build fails because no pre-built wheels are available.
 
-**Solution**: We use `transformers==4.36.0`, which retains the original `ASTAttention` class (eager/manual attention) matching the authors' code. Versions 4.37–4.44 introduced `ASTSdpaAttention` (Scaled Dot-Product Attention via `torch.nn.functional.scaled_dot_product_attention`), which is auto-selected when `torch>=2.0` is detected. The SDPA path produces **NaN losses** during training — likely due to numerical instability in the attention computation with the adapter-modified hidden states. Later versions (≥4.49) also refactored the attention forward-pass signatures entirely, breaking the adapter injection code. For PyTorch, we use whatever version Colab provides (torch 2.x with CUDA 12.x), which is forward-compatible.
+**Solution**: After extensive attempts to adapt the code to modern Colab packages (torch 2.10, transformers 4.36–4.44), all combinations produced NaN losses (see Challenges 7–8). We abandoned Colab and moved to the TAU CS SLURM cluster, which allows us to install the **exact** authors' stack: Python 3.10, `torch==1.13.1+cu117`, `transformers==4.28.1`. This eliminated all version compatibility issues.
 
 ---
 
@@ -103,37 +103,30 @@ When `args.output_path` is `'./outputs'` (a relative path), this produces a malf
 
 ---
 
-## 7. SDPA Attention Produces NaN Losses (Flash/MemEfficient Backends)
+## 7. NaN Losses with Modern PyTorch / Transformers on Google Colab
 
-**Problem**: With `transformers>=4.37`, the HuggingFace AST model auto-selects `ASTSdpaAttention` (using `torch.nn.functional.scaled_dot_product_attention`) when running on `torch>=2.0`. The flash-attention and memory-efficient backends of SDPA produce `nan` for every epoch's training loss when used with the Conformer adapter. The model outputs 2% accuracy (random chance for 50 classes).
+**Problem**: Google Colab ships with `PyTorch 2.10.0` and `Python 3.12`. The authors' code requires `torch==1.13.1` and `transformers==4.28.1`. We attempted multiple compatibility strategies:
 
-The authors' code was developed with `transformers==4.28.1`, which only has the eager `ASTAttention` class (manual query-key-value dot product with explicit softmax). The flash/mem-efficient SDPA kernels handle attention computation differently and appear numerically unstable with the adapter-modified hidden states.
+1. **`transformers==4.44.0`** (API-compatible): Auto-selected `ASTSdpaAttention` which produced NaN losses.
+2. **`transformers==4.36.0`** (last version with eager `ASTAttention`): Initially worked, but after a Colab runtime restart with PyTorch 2.10.0, also produced NaN — likely due to the 2+ year version gap.
+3. **Disabling SDPA backends** (`torch.backends.cuda.enable_flash_sdp(False)`): Only controls the kernel used inside `F.scaled_dot_product_attention`, doesn't prevent the `ASTSdpaAttention` class from being selected.
+4. **Monkey-patching `_supports_sdpa=False`**: Forced eager `ASTAttention` class, but NaN persisted — confirming the issue was not attention-specific.
 
-**Symptom**: Training log shows `Trainloss at epoch N: nan` for every epoch, with accuracy stuck at 2.0%.
+**Symptom**: `Trainloss at epoch N: nan` for every epoch across all folds, accuracy stuck at 2.0% (random chance).
 
-**Solution**: We disable the flash and memory-efficient SDPA backends in PyTorch, forcing the "math" backend (which computes attention the same way as eager):
-
-```python
-torch.backends.cuda.enable_flash_sdp(False)
-torch.backends.cuda.enable_mem_efficient_sdp(False)
-```
-
-This is done in `train.py` (our wrapper) before importing the authors' code. Combined with `transformers==4.44.0` (which is API-compatible and tested with modern PyTorch), this gives correct numerical results without modifying the authors' model code.
-
-**Why not pin `transformers==4.36.0`?** Initially we tried this (the last version before SDPA was added). While it worked briefly, `transformers==4.36.0` (December 2023) is not compatible with `PyTorch 2.10.0` (February 2026). After a Colab runtime restart that provisioned PyTorch 2.10.0, the older transformers produced NaN even with eager attention — likely due to internal PyTorch API changes over the 2+ year gap.
+**Solution**: Abandoned Colab entirely. Moved to the TAU CS SLURM cluster where we could install the authors' exact dependencies (`torch==1.13.1+cu117`, `transformers==4.28.1`, Python 3.10). This eliminated NaN completely.
 
 ---
 
-## 8. CUDA Out of Memory on T4 GPU
+## 8. Google Colab Limitations (T4 GPU, Kernel Disconnects)
 
-**Problem**: The authors developed and tested on an NVIDIA A40 (48 GB VRAM). Our target hardware — Google Colab T4 — has only 16 GB VRAM. With the authors' default batch size of 32, the backward pass OOMs:
+**Problem**: Beyond the NaN issue, Colab presented multiple operational challenges:
+- T4 GPU has only 16 GB VRAM vs the authors' A40 (48 GB), requiring batch size reduction from 32 to 16
+- `DataLoader` worker deadlocks with `num_workers=4` under GPU memory pressure
+- Kernel disconnects wiping all runtime state mid-training
+- No persistent storage (required Google Drive symlink workaround)
 
-```
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 510.00 MiB.
-GPU 0 has a total capacity of 14.56 GiB of which 443.81 MiB is free.
-```
-
-**Solution**: Reduced `batch_size_ESC` from 32 to 16 in `hparams/train.yaml`. This halves peak memory usage during training and fits comfortably on the T4. The cosine annealing scheduler sees twice as many steps per epoch, so the learning rate schedule changes slightly, but final accuracy should be comparable.
+**Solution**: The SLURM cluster provides RTX 3090 (24 GB), V100 (32 GB), A5000, and A6000 GPUs — all with sufficient VRAM for the original batch size of 32. Jobs run as batch submissions that survive disconnects, and the shared filesystem persists across sessions.
 
 ---
 
@@ -144,7 +137,6 @@ GPU 0 has a total capacity of 14.56 GiB of which 443.81 MiB is free.
 | `dataset/esc_50.py` | 1 line: `torch.as_tensor()` wrap | torch 2.x removed implicit numpy→tensor conversion |
 | `hparams/train.yaml` | added `epochs_ESC: 50` | Key expected by `main.py` was missing |
 | `hparams/train.yaml` | `batch_size_ESC: 32` → `16` | T4 GPU (16GB) OOMs with eager attention at batch 32 |
-| `requirements.txt` | `transformers==4.44.0` | Compatible with PyTorch 2.10 and authors' API |
-| `train.py` | Disable flash/mem-efficient SDPA | Prevents NaN from SDPA attention backends |
+| `requirements.txt` | Authors' original versions + `soundfile`, `matplotlib` | Exact reproduction of authors' environment |
 
 All other authors' files (`main.py`, `src/`, `utils/engine.py`) remain **unmodified**. Our additions (`train.py`, `evaluation.py`, `utils/visualization.py`) are separate files that import from the authors' code without altering it.

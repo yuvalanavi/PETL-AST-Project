@@ -12,13 +12,6 @@ The log file is saved to outputs/training.log (or the --output_path directory).
 
 import sys
 import os
-import io
-
-# Force eager (manual) attention instead of SDPA for the AST model.
-# ASTSdpaAttention produces NaN losses with the Conformer adapter on T4 GPUs.
-# This must run BEFORE any transformers model is loaded.
-from transformers.models.audio_spectrogram_transformer.modeling_audio_spectrogram_transformer import ASTPreTrainedModel
-ASTPreTrainedModel._supports_sdpa = False
 
 
 class TeeStream:
@@ -42,7 +35,6 @@ class TeeStream:
 
 
 if __name__ == '__main__':
-    # Determine output directory from args (parse --output_path before main does)
     output_dir = 'outputs'
     for i, arg in enumerate(sys.argv):
         if arg == '--output_path' and i + 1 < len(sys.argv):
@@ -52,11 +44,9 @@ if __name__ == '__main__':
     os.makedirs(output_dir, exist_ok=True)
     log_path = os.path.join(output_dir, 'training.log')
 
-    # Tee stdout so we capture the training output for later parsing
     tee = TeeStream(log_path)
     sys.stdout = tee
 
-    # Import and run the authors' main.py directly — no reimplementation
     import main as authors_main
     from argparse import ArgumentParser
 
