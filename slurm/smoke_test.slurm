@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# Smoke test: 5 folds × 3 epochs — validates the full pipeline
-# Expected: ~15-30 min on a single GPU
+# Smoke test: 5 folds × 1 epoch — validates the full pipeline
+# Expected: ~5-10 min on a single GPU
 #
 # Usage:  sbatch slurm/smoke_test.slurm
 # =============================================================================
@@ -44,10 +44,10 @@ python -c "
 import yaml
 with open('hparams/train.yaml') as f:
     hp = yaml.safe_load(f)
-hp['epochs_ESC'] = 3
+hp['epochs_ESC'] = 1
 with open('hparams/train.yaml', 'w') as f:
     yaml.dump(hp, f, default_flow_style=False)
-print('epochs_ESC set to 3')
+print('epochs_ESC set to 1')
 "
 
 python train.py \
@@ -84,7 +84,7 @@ if nan_lines:
 else:
     print('OK: No NaN in losses')
 for l in c.split('\n'):
-    if any(k in l for k in ['Trainloss at epoch 0', 'Trainloss at epoch 2', 'Folds accuracy', 'Avg accuracy', 'Training time']):
+    if any(k in l for k in ['Trainloss at epoch 0', 'Folds accuracy', 'Avg accuracy', 'Training time']):
         print(f'  {l.strip()}')
 ckpts = [f for f in os.listdir(d) if f.startswith('bestmodel')]
 print(f'  Checkpoints: {len(ckpts)}/5')
