@@ -51,6 +51,7 @@ pip install --no-cache-dir \
     --extra-index-url https://download.pytorch.org/whl/cu117 -q
 
 pip install --no-cache-dir \
+    setuptools \
     transformers==4.28.1 \
     numpy==1.22.3 \
     librosa==0.9.2 \
