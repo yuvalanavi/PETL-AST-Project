@@ -29,6 +29,7 @@ class TeeStream:
 
     def write(self, data):
         self.stdout.write(data)
+        self.stdout.flush()
         self.file.write(data)
         self.file.flush()
 
