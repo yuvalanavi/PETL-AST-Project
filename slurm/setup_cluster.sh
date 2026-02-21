@@ -26,11 +26,15 @@ else
 fi
 
 # --- 2. Create Python 3.10 virtual environment ---
-if [ -d "${VENV_DIR}" ]; then
+if [ -f "${VENV_DIR}/bin/activate" ]; then
     echo "[2/4] Virtual environment already exists."
 else
     echo "[2/4] Creating virtual environment..."
-    python3 -m venv "${VENV_DIR}"
+    rm -rf "${VENV_DIR}"
+    python3 -m venv --without-pip "${VENV_DIR}"
+    source "${VENV_DIR}/bin/activate"
+    echo "      Bootstrapping pip..."
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 fi
 
 source "${VENV_DIR}/bin/activate"
