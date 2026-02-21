@@ -104,11 +104,13 @@ WHAT WE WROTE VS AUTHORS' CODE
 Authors' code (from github.com/umbertocappellazzo/PETL_AST, unmodified):
   - src/            All model implementations
   - utils/engine.py Training and evaluation loops
-  - main.py         Main training pipeline
   - dataset/        Dataset loader classes
 
-Authors' code with minimal bugfixes:
-  - hparams/train.yaml  Added epochs_ESC key (main.py reads this key)
+Authors' code with minimal modifications:
+  - main.py              3 lines added: START_FOLD/END_FOLD/EPOCHS_OVERRIDE
+                         env vars for per-fold parallelism (no change when unset)
+  - hparams/train.yaml   Added epochs_ESC key (bug: main.py reads this key)
+                         Reduced batch_size_ESC to 16 (TITAN Xp 12GB OOM at 32)
 
 Our additions:
   - train.py                Wrapper script (stdout logging to file)
@@ -119,7 +121,7 @@ Our additions:
   - PETL_AST_Colab.ipynb    Ready-to-run Colab notebook
   - readme.txt              This documentation
   - requirements.txt        Dependencies (authors' original versions)
-  - docs/                   Sprint planning and project documentation
+  - docs/challenges.md      Detailed log of all reproduction challenges
 
 ================================================================================
 TOOLS AND REFERENCES
