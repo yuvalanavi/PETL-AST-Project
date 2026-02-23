@@ -1,12 +1,33 @@
 \documentclass[11pt, a4paper]{article}
 
-\usepackage[utf8]{inputenc}
-\usepackage{geometry}
-\geometry{a4paper, margin=1in}
-\usepackage{graphicx}
-\usepackage{amsmath}
-\usepackage{hyperref}
+% --- PAGE & TEXT FORMATTING ---
+\usepackage[utf8]{inputenc} % Allows standard text encoding
+\usepackage{geometry}       % Sets page margins 
+\geometry{a4paper, margin=1in} 
+\usepackage{hyperref}       % Creates clickable links (essential for linking your GitHub repo)
 \usepackage{cite}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref} % Optional: makes links blue and professional
+
+% --- MATH & EQUATIONS ---
+% Required for explaining evaluation metrics and writing equations 
+% Also needed for matrix notations used in the paper (e.g., intermediate spaces and low-rank matrices)
+\usepackage{amsmath}  
+\usepackage{amssymb}  
+\usepackage{amsfonts} 
+
+% --- FIGURES & GRAPHS ---
+% Essential for adding convergence graphs (loss, accuracy) and TensorBoard screenshots 
+\usepackage{graphicx} 
+\usepackage{float}          % Helps force images into exact locations using [H]
+
+% --- TABLES ---
+% Highly recommended for formatting results cleanly, just like the performance and few-shot tables in the original paper [cite: 215, 218, 291]
+\usepackage{booktabs}       % Creates professional-looking horizontal rules in tables
+\usepackage{multirow}       % Allows table cells to span multiple rows
+
+% --- CITATIONS & REFERENCES ---
+% Required for citing relevant research papers, prior work, and tools [cite: 31, 51]
+\usepackage{cite}           % standard citation package
 
 % Note: The report must be no more than 5 pages long (not including references)[cite: 13].
 
@@ -27,56 +48,133 @@
 \maketitle
 
 \begin{abstract}
-% Explain shortly in simple words what you've done and your results[cite: 49].
-This project explores Parameter-Efficient Transfer Learning (PETL) for environmental sound classification. We adapt a pre-trained Audio Spectrogram Transformer (AST) to the ESC-50 dataset by injecting novel Conformer Adapter modules, freezing the backbone to minimize compute. We detail the reproduction of these adapters and summarize our classification performance and convergence efficiency.
+In this work, we reproduce and validate the Conformer Adapter module proposed by Cappellazzo et al. (2024) for parameter-efficient transfer learning (PETL) of the Audio Spectrogram Transformer (AST). The Conformer Adapter replaces the standard bottleneck adapter with a convolution-augmented module inspired by the Conformer architecture, inserted in a parallel (Pfeiffer) configuration alongside the frozen AST's feed-forward layers. This design trains only $\sim$0.29\% of the model's parameters while approaching or matching full fine-tuning performance.
+
+We evaluate the method on two audio classification benchmarks: ESC-50 (environmental sound classification, 50 classes, 5-fold cross-validation) and Google Speech Commands V2 (GSC) (keyword spotting, 35 classes). On ESC-50, we achieve an average validation accuracy of 87.75\% $\pm$ 1.41\% and a test accuracy of 85.70\% $\pm$ 1.16\%, closely matching the paper's reported 87.5\%[cite: 501]. On GSC, we achieve [XX.XX\%] accuracy compared to the paper's reported 97.31\%.
+
+Reproducing these results required overcoming several challenges, including dependency incompatibilities with modern compute environments (Google Colab), NaN training losses caused by attention mechanism changes in newer transformer library versions, and GPU memory constraints requiring batch size reduction. We document these challenges in detail and provide all code, trained model checkpoints, and convergence analyses.
 \end{abstract}
 
 \section{Introduction}
-% Explain what problem the research paper addresses, and how it solves it[cite: 50].
-Full fine-tuning of large pre-trained models like AST is computationally expensive and memory-intensive[cite: 90, 91]. The selected research paper addresses this by introducing a Conformer Adapter, which leverages depthwise convolutions to adapt the model using only a fraction of the parameters while capturing spatial correlations crucial for audio tasks[cite: 109, 110].
+% Explain what problem the research paper addresses, and how it solves it.
+
+The evolution of audio classification has seen a decisive shift toward unified End-to-End frameworks. By replacing complex, multi-stage pipelines with architectures like the Audio Spectrogram Transformer (AST), the field has prioritized architectural simplicity and global optimization. The AST model embodies this by treating audio spectrogram patches as visual tokens, utilizing self-attention to capture long-range dependencies without the need for traditional recurrence or manual alignment.
+
+Despite the high discriminative power of these large-scale models, adapting them to specialized tasks through Full Fine-Tuning (FFT) remains a significant bottleneck. Updating the entire parameter set $\theta$ via FFT can be impractical for embedded applications due to resource constraints and the risk of catastrophic interference. This necessitates Parameter-Efficient Transfer Learning (PETL) methods that can adapt the model to downstream tasks while keeping the backbone frozen. However, traditional PETL methods, such as LoRA and linear Bottleneck Adapters, often struggle with audio signals because they lack a proper spatial inductive bias.
+
+In this project, we reproduce the Conformer Adapter in a Parallel Pfeiffer configuration. This adapter highly
+benefits from the introduction of the depthwise convolution
+layer, which allows not only to capture local spatial correlations but also trim down the number of parameters. Evaluating this method on the ESC-50 and Google Speech Commands (GSC) benchmarks, we demonstrate that updating only 0.29\% of the parameters can bridge the performance gap with full fine-tuning.
 
 \section{Related Work}
-% Specifies (and cites) relevant research papers / prior work done in the field[cite: 51].
-% E.g., AST model, standard bottleneck adapters, LoRA.
+
+\textbf{Audio Spectrogram Transformer (AST):} 
+The AST model \cite{gong2021astaudiospectrogramtransformer}, adapts the Vision Transformer architecture \cite{dosovitskiy2021imageworth16x16words} to the audio domain by processing audio spectrograms as sequences of patches. It achieves state-of-the-art results on various audio and speech classification tasks.
+
+\textbf{Parameter-Efficient Transfer Learning (PETL):} 
+To mitigate the costs of full fine-tuning, various PETL methods have been developed to freeze the pre-trained backbone and update only a small set of parameters \cite{cappellazzo2024parameterefficienttransferlearningaudio}. Common approaches include LoRA \cite{hu2022loralowrankadaptationlarge}, which leverages low-rank matrix decompositions; Prompt-Tuning \cite{jia2022visualprompttuning}, which prepends learnable continuous embeddings to the input space either at the first layer (Shallow Prompt-Tuning) or uniformly across each transformer layer (Deep Prompt-Tuning); Bottleneck Adapters \cite{pfeiffer2020adapterfusionnondestructivetaskcomposition, houlsby2019parameterefficienttransferlearningnlp}, which insert light subnetworks into transformer layers that down-project, apply a non-linearity, and up-project the hidden state back to its original dimension. BitFit \cite{zaken2022bitfit}, a minimalist baseline that fine-tunes only the bias terms of the pre-trained backbone ; and Prefix-Tuning \cite{li2021prefixtuning}, which inserts learnable continuous prompts into the keys and values of the Multi-Head Self-Attention block at every layer. We will use these as baselines for comparison.
+
+\textbf{The Conformer Model:} 
+The Conformer \cite{gulati2020conformerconvolutionaugmentedtransformer} is a leading architecture for speech processing that combines transformers with Convolutional Neural Networks (CNNs). Its core convolution module relies heavily on depthwise convolutions to efficiently capture local spatial correlations. The paper we reproduce leverages this specific module to replace the simple linear layers of standard bottleneck adapters into depthwise convolution, creating the Conformer Adapter.
 
 \section{Method}
-% The main part of the report[cite: 52].
-
 \subsection{Architecture}
-% Detail the AST backbone and the injected Conformer Adapter[cite: 53].
+
+\textbf{Frozen AST Backbone.}
+Our architecture builds upon the Audio Spectrogram Transformer (AST)~\cite{gong2021astaudiospectrogramtransformer}, a Vision Transformer~\cite{dosovitskiy2021imageworth16x16words} adapted for audio classification. The input audio waveform is converted to a 128-band log-mel spectrogram, which is split into $N$ patches of size $16 \times 16$. Each patch is linearly projected into a token of dimension $d = 768$, producing a sequence $\mathbf{X}_{\text{in}} \in \mathbb{R}^{N \times d}$. Positional embeddings are prepended and added before passing through 12 transformer layers. Each layer comprises a multi-head self-attention (MHSA) sub-layer and a feed-forward network (FFN) sub-layer, both with pre-layer normalization (LN) and residual connections:
+\begin{equation}
+\hat{\mathbf{X}} = \mathbf{X}_{\text{in}} + \text{MHSA}\!\big(\text{LN}(\mathbf{X}_{\text{in}})\big), \quad
+\mathbf{X}_{\text{out}} = \hat{\mathbf{X}} + \text{FFN}\!\big(\text{LN}(\hat{\mathbf{X}})\big).
+\label{eq:transformer}
+\end{equation}
+We use the AST checkpoint pre-trained on ImageNet-21K and AudioSet and \textbf{freeze} the entire backbone during fine-tuning. Only the injected adapter modules, the layer normalization parameters, and a newly added linear classification head are trained.
+
+\textbf{Conformer Adapter Module.}
+Following Cappellazzo et al.~\cite{cappellazzo2024parameterefficienttransferlearningaudio}, we inject lightweight \emph{Conformer Adapter} modules into each of the 12 transformer layers. Inspired by the convolution module of the Conformer~\cite{gulati2020conformerconvolutionaugmentedtransformer}, these adapters apply depthwise separable convolutions to capture local spatial correlations along the token sequence---a property that standard linear bottleneck adapters lack. Given an input $\mathbf{Z} \in \mathbb{R}^{N \times d}$, the adapter computes:
+\begin{equation}
+\text{Adapter}(\mathbf{Z}) = \text{PwConv}_{\text{up}}\!\Big(\text{SiLU}\!\big(\text{BN}\!\big(\text{DWConv}_k\!\big(\text{GLU}\!\big(\text{PwConv}_{\text{down}}(\mathbf{Z})\big)\big)\big)\big)\Big),
+\label{eq:conformer_adapter}
+\end{equation}
+where $\text{PwConv}_{\text{down}}$ is a pointwise ($1{\times}1$) convolution projecting $d \!\to\! 2r$ with bottleneck dimension $r = \lfloor d/\text{RR} \rfloor$ and reduction rate $\text{RR}$; GLU halves the channels from $2r$ to $r$; $\text{DWConv}_k$ is a depthwise 1-D convolution with kernel size $k$ and $\text{groups}{=}r$, capturing local dependencies; BN and SiLU denote Batch Normalization and the Swish activation, respectively; and $\text{PwConv}_{\text{up}}$ restores the dimension $r \!\to\! d$. In our experiments we set $\text{RR}=96$ (giving $r=8$) and $k=8$.
+
+\textbf{Integration (Pfeiffer Parallel).}
+We adopt the Pfeiffer configuration~\cite{pfeiffer2020adapterfusionnondestructivetaskcomposition}, inserting one adapter per layer in parallel with the FFN sub-layer. Both the FFN and the adapter receive the same layer-normalized hidden state, and their outputs are summed:
+\begin{equation}
+\mathbf{X}_{\text{out}} = \hat{\mathbf{X}} + \text{FFN}\!\big(\text{LN}(\hat{\mathbf{X}})\big) + \text{Adapter}\!\big(\text{LN}(\hat{\mathbf{X}})\big).
+\label{eq:pfeiffer_parallel}
+\end{equation}
+No additional residual connection is applied within the adapter itself. After the final transformer layer, classification is performed by averaging all output token representations and passing the result through a linear head over the 50 ESC-50 classes.
 
 \subsection{Evaluation Metrics}
-% Explain the evaluation metrics - add equation(s) if needed[cite: 54].
-
 \subsection{Experimental Setup}
-% Compute, hyper parameters used, datasets, etc.[cite: 54, 55].
-The model is fine-tuned on the ESC-50 dataset, consisting of 2,000 environmental audio recordings across 50 classes[cite: 193]. We utilized the AST model pre-trained on ImageNet-21K and AudioSet[cite: 210]. 
-
 \subsection{Implementation Challenges}
-% Specify the challenges you faced when using the Git repository to reproduce the results, including modifications[cite: 56, 57].
-
 \section{Results and Discussion}
+% Try to reconstruct results. If achieved- great!, if not achieved, try to explain why[cite: 41].
 % Show interesting results and explain them[cite: 58, 59].
 
+We evaluated the performance of the Conformer Adapter in a Pfeiffer configuration on the ESC-50 dataset. Our implementation achieved a final 5-fold cross-validation accuracy of [YOUR ACCURACY]\%. The original paper reported an accuracy of 88.30\% for this specific configuration \cite{cappellazzo2024}. 
+
+[IF YOU MATCHED/BEAT THE RESULTS:] 
+Our results successfully reconstruct and validate the findings of Cappellazzo et al., confirming that the Conformer Adapter provides a highly effective spatial inductive bias for environmental sound classification while utilizing only a fraction of the full model's parameters. 
+
+[IF YOU DID NOT MATCH THE RESULTS:] 
+While our model demonstrated strong learning capabilities, our final accuracy fell slightly short of the reported 88.30\%. We hypothesize that this discrepancy may be due to [EXPLAIN WHY - e.g., differences in exact hyperparameter scheduling, random seed initialization variances, or constraints in our specific PyTorch 2.x environment adaptation compared to the authors' PyTorch 1.x setup].
+
 \subsection{Convergence Graphs}
-% Add the convergence graphs (loss, acc. of the model during training) - can use Tensorboard screenshots[cite: 60, 61].
+% Add the convergence graphs (loss, acc. of the model during training) you can take screen-shots from Tensorboard[cite: 60, 61].
+
+Figure \ref{fig:loss} and Figure \ref{fig:accuracy} illustrate the training and validation loss, and the accuracy of the model during training, respectively. [Add 1-2 sentences describing the graph - e.g., "The model demonstrates rapid convergence within the first 20 epochs before plateauing, with no significant signs of overfitting on the validation set."]
+
+\begin{figure}[H]
+    \centering
+    % TODO: Upload your loss graph screenshot to Overleaf and replace 'loss_graph.png'
+    \includegraphics[width=0.7\textwidth]{loss_graph.png}
+    \caption{Training and validation loss across 50 epochs.}
+    \label{fig:loss}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    % TODO: Upload your accuracy graph screenshot to Overleaf and replace 'accuracy_graph.png'
+    \includegraphics[width=0.7\textwidth]{accuracy_graph.png}
+    \caption{Validation accuracy progression across 50 epochs.}
+    \label{fig:accuracy}
+\end{figure}
 
 \section{Future Work}
-% Suggest an idea for improving the proposed method. Do NOT implement it. Explain why it will work, and pros/cons[cite: 62, 63, 64].
+% Suggest an idea for improving the proposed method. Do NOT implement it[cite: 63]. 
+% Explain why you think it will work, and what are the pros and cons of your idea[cite: 64].
+
+While the Parallel Pfeiffer Conformer Adapter achieves high parameter efficiency, we propose two architectural refinements: one to further minimize the trainable parameter footprint and another to enhance the model's discriminative power.
+
+\begin{itemize}
+
+\item \textbf{Layer-Selective Adapter Injection}:
+Current implementations typically inject adapters uniformly across all transformer blocks. We propose a granular analysis of the latent representations at each layer to identify patterns in their discriminative power and semantic depth. By evaluating the specific contributions of individual layers, we aim to determine if adapter injection is most effective at certain depth, particularly those responsible for extracting spatial inductive biases. Strategically limiting the injection to these high-impact layers would further minimize the trainable parameter count while potentially increasing performance by reducing architectural noise in layers that are already well-optimized.
+
+\item \textbf{Signal-Aware Dynamic Gating}:
+The current architecture utilizes a static summation to integrate the frozen global features from the Feed-Forward Network (FFN) with the local features from the adapter. We propose replacing this static connection with a learnable, signal-aware gating mechanism. The gate would dynamically weight the contribution of each branch based on the input signal. This would allow the model to selectively prioritize the convolutional inductive bias for complex, non-stationary environmental sounds while relying on the pre-trained backbone for simpler acoustic signals.
+
+\end{itemize}
 
 \section{Limitations and Broader Impact}
-% Specify the broader impact and risks of the model you've trained[cite: 65, 66].
+% Specify the broader impact and risks of the model you've trained[cite: 66].
 
-\section*{References}
-% List of relevant references. This section can exceed the 5-page limit[cite: 66, 67].
-\begin{thebibliography}{9}
+\subsection{Broader Impact}
+The primary impact of this research is that it enables the use of advanced audio models in settings where computing resources are limited. By requiring only 0.29\% of the model's parameters to be updated, this method allows individuals and local users to train and adapt high-performance systems to their own specific needs without the need for expensive, industrial-scale hardware. This approach lowers the barrier to entry, allowing people with modest computing budgets to take a large, pre-trained model and customize it for a specific task.
 
-\bibitem{cappellazzo2024}
-U. Cappellazzo, D. Falavigna, A. Brutti, and M. Ravanelli, ``Parameter-Efficient Transfer Learning of Audio Spectrogram Transformers,'' \emph{arXiv preprint arXiv:2312.03694v4}, 2024. [cite: 69, 71, 72]
+\subsection{Risks and Limitations}
+Despite these advantages, several risks and architectural limitations remain:
 
-\bibitem{gong2021}
-Y. Gong, Y. Chung, and J. Glass, ``AST: Audio Spectrogram Transformer,'' in \emph{Interspeech}, 2021. [cite: 334]
+\begin{itemize}
 
-\end{thebibliography}
+    \item \textbf{Architectural and Hyperparameter Inconsistency:} A significant limitation of the current PETL-AST framework is the lack of a unified architectural configuration across different audio domains. Empirical results from the original study indicate that optimal performance is highly sensitive to structural choices such as whether the Adapters are injected at single or multiple points within the Transformer block. Furthermore, critical hyperparameters do not generalize across tasks; for instance, the optimal convolution kernel size ($k$) for the Conformer Adapter varies drastically between environmental sounds ($k=8$ for ESC-50) and speech commands ($k=31$ for GSC). This necessity for task-specific manual tuning suggests that the spatial inductive bias is not universally transferable, complicating the development of a truly general-purpose audio encoder.
+
+    \item \textbf{Malicious Usage Risks:} A significant ethical concern arising from this work is that by lowering the computational barrier to entry, we inadvertently increase the accessibility of high-performance fine-tuning for malicious actors. While parameter efficiency is intended to foster innovation on resource-constrained devices, it simultaneously enables the rapid adaptation of models for harmful purposes such as unauthorized acoustic surveillance.
+    
+\end{itemize}
+
+\bibliographystyle{IEEEtran} % Or 'plain', 'unsrt', or 'alpha'
+\bibliography{references}
 
 \end{document}
