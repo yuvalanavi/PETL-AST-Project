@@ -91,61 +91,25 @@ After the final transformer layer, classification is performed by averaging all 
 \end{figure}
 
 \subsection{Evaluation Metrics}
-We report classification accuracy as the primary evaluation metric, consistent with the original paper. For ESC-50, we follow the standard 5-fold cross-validation protocol defined by the dataset authors~\cite{piczak2015esc}. The dataset is pre-split into five folds; in each iteration, three folds are used for training, one fold for validation (hyperparameter selection and early stopping), and the remaining fold serves as the test set. The final reported accuracy is the mean across all five folds:
-\begin{equation}
-\text{Acc}_{\text{avg}} = \frac{1}{K}\sum_{k=1}^{K} \text{Acc}_k, \quad K = 5.
-\label{eq:kfold}
-\end{equation}
-We additionally report the standard deviation across folds to quantify variance, and track training loss and validation accuracy per epoch to produce convergence analyses.
+We report classification accuracy as the primary metric. For ESC-50, we follow the standard 5-fold cross-validation protocol~\cite{piczak2015esc}: in each iteration, three folds are used for training, one for validation, and the remaining fold for testing. The final accuracy is the mean $\pm$ standard deviation across the five test folds. For GSC, which provides predefined train/validation/test splits, we report single-run test accuracy.
 
 \subsection{Experimental Setup}
-\textbf{Backbone.} We use the pre-trained AST checkpoint (\texttt{MIT/ast-finetuned-audioset-10-10-0.4593}) from Hugging\-Face, pre-trained on ImageNet-21K and AudioSet. The backbone has $\sim$85.5M parameters, 12 transformer layers, and a hidden dimension of $d = 768$. All backbone parameters are frozen during training.
+We use the pre-trained AST checkpoint (\texttt{MIT/ast-finetuned-audioset-10-10-0.4593}) with $\sim$85.5M frozen parameters ($d{=}768$, 12 layers). The Conformer Adapter is inserted in Pfeiffer parallel configuration with $\text{RR}{=}96$ ($r{=}8$), $k{=}8$ for ESC-50 and $k{=}31$ for GSC, yielding $\sim$271K trainable parameters (0.29\% of the model).
 
-\textbf{Adapter Configuration.} We use the Conformer Adapter in Pfeiffer parallel configuration with reduction rate $\text{RR} = 96$ (bottleneck dimension $r = 8$) and depthwise convolution kernel size $k = 8$. This yields $\sim$271K trainable parameters (0.29\% of the full model), consisting of the adapter modules, layer normalization parameters, and the classification head.
+We optimize with AdamW~\cite{loshchilov2019decoupledweightdecayregularization} ($\beta_1{=}0.9$, $\beta_2{=}0.98$, $\epsilon{=}10^{-6}$, lr$\,{=}\,0.005$, weight decay$\,{=}\,0.1$) and cosine annealing, training for 50 epochs per fold with cross-entropy loss. Input audio is resampled to 16\,kHz, converted to a 128-band log-mel spectrogram, and split into $16{\times}16$ patches ($N{=}500$ tokens) with SpecAugment-style masking.
 
-\textbf{Optimization.} We use AdamW~\cite{loshchilov2019decoupledweightdecayregularization} with $\beta_1 = 0.9$, $\beta_2 = 0.98$, $\epsilon = 10^{-6}$, initial learning rate $0.005$, and weight decay $0.1$. The learning rate follows a cosine annealing schedule over the total number of training steps. We train for 50 epochs per fold with cross-entropy loss.
-
-\textbf{Data Processing.} Input audio is resampled to 16\,kHz and converted to a 128-band log-mel spectrogram, which is split into $16 \times 16$ patches with sequence length $N = 500$ tokens. Standard data augmentation from the authors' pipeline is applied (SpecAugment-style time and frequency masking).
-
-\textbf{Compute.} Training was conducted on a university SLURM cluster using NVIDIA TITAN Xp GPUs (12\,GB VRAM). Due to GPU memory constraints, we reduced the batch size from 32 (used by the authors on A40/V100 GPUs) to 16. Each of the 5 folds was run in parallel as an independent SLURM job array task, with each fold completing in approximately 1 hour (wall-clock), for a total of $\sim$1 hour end-to-end.
-
-\textbf{Software.} We use the authors' exact environment: Python 3.10, PyTorch 1.13.1, \texttt{transformers} 4.28.1, \texttt{torchaudio} 0.13.1, and \texttt{librosa} 0.9.2.
+Training was conducted on a university SLURM cluster (NVIDIA TITAN Xp, 12\,GB VRAM) using the authors' exact software stack (Python 3.10, PyTorch 1.13.1, \texttt{transformers} 4.28.1). We reduced the batch size from 32 to 16 due to GPU memory constraints and parallelized the 5 folds via SLURM job arrays ($\sim$1 hour per fold).
 
 \subsection{Implementation Challenges}
-Reproducing the results from the authors' GitHub repository\footnote{\url{https://github.com/umbertocappellazzo/PETL\_AST}} required overcoming several significant challenges.
-
-\textbf{Environment Incompatibility with Google Colab.} Our initial compute target was Google Colab (T4 GPU). However, the authors' dependencies (\texttt{torch==1.13.1}, \texttt{transformers==4.28.1}) are incompatible with Colab's CUDA 12.x and Python 3.12 environment. Attempting to bridge the gap with newer library versions led to persistent \texttt{NaN} training losses---caused by the \texttt{ASTSdpaAttention} class in modern \texttt{transformers}---that could not be resolved through any combination of version pinning, SDPA backend disabling, or monkey-patching. After exhausting all workarounds, we abandoned Colab and migrated to a SLURM cluster to run the authors' exact software stack.
-
-\textbf{Repository Bugs.} The authors' \texttt{hparams/train.yaml} was missing the \texttt{epochs\_ESC} key (only \texttt{epochs\_ESC\_AST} existed), causing a \texttt{KeyError} at runtime. Several \texttt{argparse} arguments used \texttt{type=bool}, which silently accepts any string as \texttt{True}. The checkpoint save path construction also produced malformed paths depending on the \texttt{output\_path} argument format.
-
-\textbf{Cluster Constraints.} The SLURM cluster's home directory had a 4\,GB quota, insufficient for the $\sim$3.5\,GB of Python dependencies. We resolved this by using an alternative storage volume. Additionally, \texttt{librosa==0.9.2} depends on \texttt{pkg\_resources}, which was removed in recent \texttt{setuptools} versions; we pinned \texttt{setuptools==69.5.1}. The available GPUs (TITAN Xp, 12\,GB) required halving the batch size from 32 to 16, and the 8-hour job time limit necessitated parallelizing the 5 folds via SLURM job arrays (adding 3 lines to \texttt{main.py} for fold selection via environment variables).
+Reproducing results from the authors' repository\footnote{\url{https://github.com/umbertocappellazzo/PETL\_AST}} required overcoming several challenges. \textbf{(1) Google Colab incompatibility:} The authors' dependencies (\texttt{torch==1.13.1}, \texttt{transformers==4.28.1}) are incompatible with Colab's CUDA 12.x / Python 3.12 environment. Bridging the gap with newer libraries led to persistent \texttt{NaN} training losses caused by the \texttt{ASTSdpaAttention} class in modern \texttt{transformers}, which could not be resolved. We migrated to a SLURM cluster. \textbf{(2) Repository bugs:} Missing \texttt{epochs\_ESC} key in the YAML config, \texttt{type=bool} argparse misuse, and malformed checkpoint paths. \textbf{(3) Cluster constraints:} A 4\,GB home directory quota required using alternative storage; \texttt{librosa==0.9.2} needed a pinned \texttt{setuptools==69.5.1} (newer versions removed \texttt{pkg\_resources}); the 12\,GB GPU VRAM required halving the batch size; and the 8-hour job limit required parallelizing folds via SLURM job arrays.
 
 \section{Results and Discussion}
-We evaluated the Conformer Adapter in a Pfeiffer parallel configuration on ESC-50 (5-fold cross-validation, 50 epochs per fold). Table~\ref{tab:esc50_results} summarizes the per-fold results. Our reproduction achieved an average test accuracy of 85.70\% $\pm$ 1.16\%, compared to the paper's reported 88.30\%~\cite{cappellazzo2024parameterefficienttransferlearningaudio}. The best validation accuracy across folds averaged 87.75\% $\pm$ 1.41\%.
+We evaluated the Conformer Adapter (Pfeiffer parallel) on both benchmarks. On ESC-50 (5-fold CV, 50 epochs per fold), our reproduction achieved an average test accuracy of \textbf{85.70\% $\pm$ 1.16\%}, compared to the paper's reported 88.30\%~\cite{cappellazzo2024parameterefficienttransferlearningaudio}, with a best validation accuracy of 87.75\% $\pm$ 1.41\%. On GSC, we achieved \textbf{94.43\%} compared to the paper's 96.28\%.
 
-\begin{table}[H]
-\centering
-\caption{ESC-50 per-fold results (Conformer Adapter, Pfeiffer parallel).}
-\label{tab:esc50_results}
-\begin{tabular}{lcc}
-\toprule
-Fold & Best Val Acc (\%) & Test Acc (\%) \\
-\midrule
-0 & 88.50 & 86.00 \\
-1 & 87.75 & 86.50 \\
-2 & 87.25 & 86.75 \\
-3 & 89.75 & 85.75 \\
-4 & 85.50 & 83.50 \\
-\midrule
-\textbf{Average} & \textbf{87.75 $\pm$ 1.41} & \textbf{85.70 $\pm$ 1.16} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-While our model demonstrated strong convergence and learning capability, the final test accuracy fell 2.6\% short of the reported 88.30\%. We attribute this gap primarily to the reduced batch size (16 vs.\ the authors' 32), necessitated by the 12\,GB VRAM constraint of the TITAN Xp GPUs available on our cluster. Smaller batches affect the Batch Normalization statistics within the Conformer adapter's depthwise convolution layer, which is particularly sensitive to batch size as it normalizes across the batch dimension. Despite this, our best validation accuracy (87.75\%) closely approaches the paper's result, suggesting the model has comparable learning capacity and the gap is an evaluation artifact of the batch size mismatch.
+We attribute the ESC-50 gap (2.6\%) primarily to the reduced batch size (16 vs.\ the authors' 32), necessitated by the 12\,GB VRAM of the TITAN Xp GPUs on our cluster. Smaller batches degrade the Batch Normalization statistics within the adapter's depthwise convolution layer. Despite this, our best validation accuracy (87.75\%) closely approaches the paper's result, suggesting comparable learning capacity.
 
 \subsection{Convergence Analysis}
-Figures~\ref{fig:loss} and~\ref{fig:accuracy} show the training loss and validation accuracy across 50 epochs for all five folds. The training loss decreases sharply in the first 10 epochs and converges near zero by epoch 20, indicating effective optimization. Validation accuracy rises steeply in the early epochs and plateaus around epoch 15--20, with no significant signs of overfitting. Fold-to-fold variance remains low throughout training, confirming the stability of the Conformer Adapter across different data splits.
+Figures~\ref{fig:loss} and~\ref{fig:accuracy} show convergence for GSC and ESC-50. Training loss drops sharply in the first 10 epochs and plateaus near zero by epoch 20. Validation accuracy stabilizes around epoch 15--20 with no signs of overfitting and low fold-to-fold variance.
 
 \begin{figure}[H]
     \centering
@@ -162,32 +126,20 @@ Figures~\ref{fig:loss} and~\ref{fig:accuracy} show the training loss and validat
 \end{figure}
 
 \section{Future Work}
-While the Parallel Pfeiffer Conformer Adapter achieves high parameter efficiency, we propose two architectural refinements: one to further minimize the trainable parameter footprint and another to enhance the model's discriminative power.
+We propose two refinements to the Conformer Adapter:
 
 \begin{itemize}
+\item \textbf{Layer-Selective Adapter Injection:} Rather than injecting adapters uniformly across all 12 layers, we propose analyzing per-layer representations to identify which depths benefit most from the spatial inductive bias. Limiting injection to high-impact layers would reduce parameter count while potentially improving performance.
 
-\item \textbf{Layer-Selective Adapter Injection}:
-Current implementations typically inject adapters uniformly across all transformer blocks. We propose a granular analysis of the latent representations at each layer to identify patterns in their discriminative power and semantic depth. By evaluating the specific contributions of individual layers, we aim to determine if adapter injection is most effective at certain depth, particularly those responsible for extracting spatial inductive biases. Strategically limiting the injection to these high-impact layers would further minimize the trainable parameter count while potentially increasing performance by reducing architectural noise in layers that are already well-optimized.
-
-\item \textbf{Signal-Aware Dynamic Gating}:
-The current architecture utilizes a static summation to integrate the frozen global features from the Feed-Forward Network (FFN) with the local features from the adapter. We propose replacing this static connection with a learnable, signal-aware gating mechanism. The gate would dynamically weight the contribution of each branch based on the input signal. This would allow the model to selectively prioritize the convolutional inductive bias for complex, non-stationary environmental sounds while relying on the pre-trained backbone for simpler acoustic signals.
-
+\item \textbf{Signal-Aware Dynamic Gating:} The current Pfeiffer parallel design uses static summation of FFN and adapter outputs. Replacing this with a learnable gate that dynamically weights each branch based on the input signal would allow the model to prioritize local convolutional features for complex sounds while relying on the frozen backbone for simpler patterns.
 \end{itemize}
 
 \section{Limitations and Broader Impact}
-\subsection{Broader Impact}
-The primary impact of this research is that it enables the use of advanced audio models in settings where computing resources are limited. By requiring only 0.29\% of the model's parameters to be updated, this method allows individuals and local users to train and adapt high-performance systems to their own specific needs without the need for expensive, industrial-scale hardware. This approach lowers the barrier to entry, allowing people with modest computing budgets to take a large, pre-trained model and customize it for a specific task.
+\textbf{Broader Impact.} By requiring only 0.29\% of parameters to be updated, PETL methods democratize access to high-performance audio models for users with limited compute, without requiring expensive hardware.
 
-\subsection{Risks and Limitations}
-Despite these advantages, several risks and architectural limitations remain:
+\textbf{Limitations.} Optimal hyperparameters do not generalize across tasks: the depthwise convolution kernel size varies between $k{=}8$ (ESC-50) and $k{=}31$ (GSC), and the best adapter configuration (Pfeiffer vs.\ Houlsby) is also task-dependent. This necessitates per-task tuning, complicating the development of a truly general-purpose audio encoder.
 
-\begin{itemize}
-
-    \item \textbf{Architectural and Hyperparameter Inconsistency:} A significant limitation of the current PETL-AST framework is the lack of a unified architectural configuration across different audio domains. Empirical results from the original study indicate that optimal performance is highly sensitive to structural choices such as whether the Adapters are injected at single or multiple points within the Transformer block. Furthermore, critical hyperparameters do not generalize across tasks; for instance, the optimal convolution kernel size ($k$) for the Conformer Adapter varies drastically between environmental sounds ($k=8$ for ESC-50) and speech commands ($k=31$ for GSC). This necessity for task-specific manual tuning suggests that the spatial inductive bias is not universally transferable, complicating the development of a truly general-purpose audio encoder.
-
-    \item \textbf{Malicious Usage Risks:} A significant ethical concern arising from this work is that by lowering the computational barrier to entry, we inadvertently increase the accessibility of high-performance fine-tuning for malicious actors. While parameter efficiency is intended to foster innovation on resource-constrained devices, it simultaneously enables the rapid adaptation of models for harmful purposes such as unauthorized acoustic surveillance.
-    
-\end{itemize}
+\textbf{Risks.} Lowering the computational barrier to fine-tuning simultaneously increases accessibility for malicious actors, potentially enabling unauthorized acoustic surveillance or other harmful audio classification applications.
 
 \bibliographystyle{IEEEtran} % Or 'plain', 'unsrt', or 'alpha'
 \bibliography{references}
