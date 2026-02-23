@@ -106,8 +106,35 @@ We adopt the Pfeiffer configuration~\cite{pfeiffer2020adapterfusionnondestructiv
 No additional residual connection is applied within the adapter itself. After the final transformer layer, classification is performed by averaging all output token representations and passing the result through a linear head over the 50 ESC-50 classes.
 
 \subsection{Evaluation Metrics}
+We report classification accuracy as the primary evaluation metric, consistent with the original paper. For ESC-50, we follow the standard 5-fold cross-validation protocol defined by the dataset authors~\cite{piczak2015esc}. The dataset is pre-split into five folds; in each iteration, four folds are used for training (with a random 10\% held out as a validation set), and the remaining fold serves as the test set. The final reported accuracy is the mean across all five folds:
+\begin{equation}
+\text{Acc}_{\text{avg}} = \frac{1}{K}\sum_{k=1}^{K} \text{Acc}_k, \quad K = 5.
+\label{eq:kfold}
+\end{equation}
+We additionally report the standard deviation across folds to quantify variance, and track training loss and validation accuracy per epoch to produce convergence analyses.
+
 \subsection{Experimental Setup}
+\textbf{Backbone.} We use the pre-trained AST checkpoint (\texttt{MIT/ast-finetuned-audioset-10-10-0.4593}) from Hugging\-Face, pre-trained on ImageNet-21K and AudioSet. The backbone has $\sim$85.5M parameters, 12 transformer layers, and a hidden dimension of $d = 768$. All backbone parameters are frozen during training.
+
+\textbf{Adapter Configuration.} We use the Conformer Adapter in Pfeiffer parallel configuration with reduction rate $\text{RR} = 96$ (bottleneck dimension $r = 8$) and depthwise convolution kernel size $k = 8$. This yields $\sim$271K trainable parameters (0.29\% of the full model), consisting of the adapter modules, layer normalization parameters, and the classification head.
+
+\textbf{Optimization.} We use AdamW~\cite{loshchilov2019decoupledweightdecayregularization} with $\beta_1 = 0.9$, $\beta_2 = 0.98$, $\epsilon = 10^{-6}$, initial learning rate $0.005$, and weight decay $0.1$. The learning rate follows a cosine annealing schedule over the total number of training steps. We train for 50 epochs per fold with cross-entropy loss.
+
+\textbf{Data Processing.} Input audio is resampled to 16\,kHz and converted to a 128-band log-mel spectrogram, which is split into $16 \times 16$ patches with sequence length $N = 500$ tokens. Standard data augmentation from the authors' pipeline is applied (SpecAugment-style time and frequency masking).
+
+\textbf{Compute.} Training was conducted on a university SLURM cluster using NVIDIA TITAN Xp GPUs (12\,GB VRAM). Due to GPU memory constraints, we reduced the batch size from 32 (used by the authors on A40/V100 GPUs) to 16. Each of the 5 folds was run in parallel as an independent SLURM job array task, with each fold completing in approximately 1 hour (wall-clock), for a total of $\sim$1 hour end-to-end.
+
+\textbf{Software.} We use the authors' exact environment: Python 3.10, PyTorch 1.13.1, \texttt{transformers} 4.28.1, \texttt{torchaudio} 0.13.1, and \texttt{librosa} 0.9.2.
+
 \subsection{Implementation Challenges}
+Reproducing the results from the authors' GitHub repository\footnote{\url{https://github.com/umbertocappellazzo/PETL\_AST}} required overcoming several significant challenges.
+
+\textbf{Environment Incompatibility with Google Colab.} Our initial compute target was Google Colab (T4 GPU). However, the authors' dependencies (\texttt{torch==1.13.1}, \texttt{transformers==4.28.1}) are incompatible with Colab's CUDA 12.x and Python 3.12 environment. Attempting to bridge the gap with newer library versions led to persistent \texttt{NaN} training losses---caused by the \texttt{ASTSdpaAttention} class in modern \texttt{transformers}---that could not be resolved through any combination of version pinning, SDPA backend disabling, or monkey-patching. After exhausting all workarounds, we abandoned Colab and migrated to a SLURM cluster to run the authors' exact software stack.
+
+\textbf{Repository Bugs.} The authors' \texttt{hparams/train.yaml} was missing the \texttt{epochs\_ESC} key (only \texttt{epochs\_ESC\_AST} existed), causing a \texttt{KeyError} at runtime. Several \texttt{argparse} arguments used \texttt{type=bool}, which silently accepts any string as \texttt{True}. The checkpoint save path construction also produced malformed paths depending on the \texttt{output\_path} argument format.
+
+\textbf{Cluster Constraints.} The SLURM cluster's home directory had a 4\,GB quota, insufficient for the $\sim$3.5\,GB of Python dependencies. We resolved this by using an alternative storage volume. Additionally, \texttt{librosa==0.9.2} depends on \texttt{pkg\_resources}, which was removed in recent \texttt{setuptools} versions; we pinned \texttt{setuptools==69.5.1}. The available GPUs (TITAN Xp, 12\,GB) required halving the batch size from 32 to 16, and the 8-hour job time limit necessitated parallelizing the 5 folds via SLURM job arrays (adding 3 lines to \texttt{main.py} for fold selection via environment variables).
+
 \section{Results and Discussion}
 % Try to reconstruct results. If achieved- great!, if not achieved, try to explain why[cite: 41].
 % Show interesting results and explain them[cite: 58, 59].
