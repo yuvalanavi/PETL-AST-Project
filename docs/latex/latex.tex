@@ -32,9 +32,8 @@
 \begin{abstract}
 In this work, we reproduce and validate the Conformer Adapter module proposed by Cappellazzo et al. (2024) for parameter-efficient transfer learning (PETL) of the Audio Spectrogram Transformer (AST). The Conformer Adapter replaces the standard bottleneck adapter with a convolution-augmented module inspired by the Conformer architecture, inserted in a parallel (Pfeiffer) configuration alongside the frozen AST's feed-forward layers. This design trains only $\sim$0.29\% of the model's parameters while approaching or matching full fine-tuning performance.
 
-We evaluate the method on two audio classification benchmarks: ESC-50~\cite{piczak2015esc} (environmental sound classification, 50 classes, 5-fold cross-validation) and Google Speech Commands V2 (GSC)~\cite{warden2018speechcommands} (keyword spotting, 35 classes). On ESC-50, we achieve a test accuracy of 85.70\% $\pm$ 1.16\% compared to the paper's reported 88.30\%, with the gap primarily attributed to a reduced batch size (16 vs.\ 32) necessitated by GPU memory constraints. On GSC, we achieve [XX.XX\%] accuracy compared to the paper's reported [YY.YY\%].
+We evaluate the method on two audio classification benchmarks: ESC-50~\cite{piczak2015esc} and Google Speech Commands V2 (GSC)~\cite{warden2018speechcommands}. On ESC-50, we achieve an average test accuracy of 85.70\% compared to the paper's reported 88.30\%, with the gap primarily attributed to a reduced batch size (16 vs.\ 32) necessitated by GPU memory constraints. On GSC, we achieve 94.43\% accuracy compared to the paper's reported 96.28\%.
 
-Reproducing these results required overcoming several challenges, including dependency incompatibilities with modern compute environments (Google Colab), NaN training losses caused by attention mechanism changes in newer transformer library versions, and GPU memory constraints requiring batch size reduction. We document these challenges in detail and provide all code, trained model checkpoints, and convergence analyses.
 \end{abstract}
 
 \section{Introduction}
@@ -65,15 +64,15 @@ Our architecture builds upon the Audio Spectrogram Transformer (AST)~\cite{gong2
 \mathbf{X}_{\text{out}} = \hat{\mathbf{X}} + \text{FFN}\!\big(\text{LN}(\hat{\mathbf{X}})\big).
 \label{eq:transformer}
 \end{equation}
-We use the AST checkpoint pre-trained on ImageNet-21K and AudioSet and \textbf{freeze} the entire backbone during fine-tuning. Only the injected adapter modules, the layer normalization parameters, and a newly added linear classification head are trained.
+We use the AST checkpoint pre-trained on ImageNet-21K and AudioSet and freeze the entire backbone during fine-tuning. Only the injected adapter modules, the layer normalization parameters, and a newly added linear classification head are trained.
 
 \textbf{Conformer Adapter Module.}
-Following Cappellazzo et al.~\cite{cappellazzo2024parameterefficienttransferlearningaudio}, we inject lightweight \emph{Conformer Adapter} modules into each of the 12 transformer layers. Inspired by the convolution module of the Conformer~\cite{gulati2020conformerconvolutionaugmentedtransformer}, these adapters apply depthwise separable convolutions to capture local spatial correlations along the token sequence---a property that standard linear bottleneck adapters lack. Given an input $\mathbf{Z} \in \mathbb{R}^{N \times d}$, the adapter computes:
+Following Cappellazzo et al.~\cite{cappellazzo2024parameterefficienttransferlearningaudio}, we inject lightweight \emph{Conformer Adapter} modules into each of the 12 transformer layers. Inspired by the convolution module of the Conformer~\cite{gulati2020conformerconvolutionaugmentedtransformer}, these adapters apply depthwise separable convolutions to capture local spatial correlations along the token sequence, a property that standard linear bottleneck adapters lack. Given an input $\mathbf{Z} \in \mathbb{R}^{N \times d}$, the adapter computes:
 \begin{equation}
 \text{Adapter}(\mathbf{Z}) = \text{PwConv}_{\text{up}}\!\Big(\text{SiLU}\!\big(\text{BN}\!\big(\text{DWConv}_k\!\big(\text{GLU}\!\big(\text{PwConv}_{\text{down}}(\mathbf{Z})\big)\big)\big)\big)\Big),
 \label{eq:conformer_adapter}
 \end{equation}
-where $\text{PwConv}_{\text{down}}$ is a pointwise ($1{\times}1$) convolution projecting $d \!\to\! 2r$ with bottleneck dimension $r = \lfloor d/\text{RR} \rfloor$ and reduction rate $\text{RR}$; GLU halves the channels from $2r$ to $r$; $\text{DWConv}_k$ is a depthwise 1-D convolution with kernel size $k$ and $\text{groups}{=}r$, capturing local dependencies; BN and SiLU denote Batch Normalization and the Swish activation, respectively; and $\text{PwConv}_{\text{up}}$ restores the dimension $r \!\to\! d$. In our experiments we set $\text{RR}=96$ (giving $r=8$) and $k=8$.
+where $\text{PwConv}_{\text{down}}$ is a pointwise ($1{\times}1$) convolution projecting $d \!\to\! 2r$ with bottleneck dimension $r = \lfloor d/\text{RR} \rfloor$ and reduction rate $\text{RR}$; GLU halves the channels from $2r$ to $r$; $\text{DWConv}_k$ is a depthwise 1-D convolution with kernel size $k$ and $\text{groups}{=}r$; BN and SiLU denote Batch Normalization and the Swish activation, respectively; and $\text{PwConv}_{\text{up}}$ restores the dimension $r \!\to\! d$. In our experiments we set $\text{RR}=96$ (giving $r=8$) and $k=8$ for ESC-50 and $k=31$ for GSC.
 
 \textbf{Integration (Pfeiffer Parallel).}
 We adopt the Pfeiffer configuration~\cite{pfeiffer2020adapterfusionnondestructivetaskcomposition}, inserting one adapter per layer in parallel with the FFN sub-layer. Both the FFN and the adapter receive the same layer-normalized hidden state, and their outputs are summed:
@@ -81,7 +80,15 @@ We adopt the Pfeiffer configuration~\cite{pfeiffer2020adapterfusionnondestructiv
 \mathbf{X}_{\text{out}} = \hat{\mathbf{X}} + \text{FFN}\!\big(\text{LN}(\hat{\mathbf{X}})\big) + \text{Adapter}\!\big(\text{LN}(\hat{\mathbf{X}})\big).
 \label{eq:pfeiffer_parallel}
 \end{equation}
-No additional residual connection is applied within the adapter itself. After the final transformer layer, classification is performed by averaging all output token representations and passing the result through a linear head over the 50 ESC-50 classes.
+After the final transformer layer, classification is performed by averaging all output token representations and passing the result through a linear head over the 50 ESC-50 classes.
+
+% --- Figure Section ---
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\linewidth]{arch.png}
+    \caption{Architecture overview: (Left) The frozen AST backbone with parallel Conformer Adapters. (Right) Detailed schematic of the Conformer Adapter module featuring depthwise convolutions.}
+    \label{fig:architecture}
+\end{figure}
 
 \subsection{Evaluation Metrics}
 We report classification accuracy as the primary evaluation metric, consistent with the original paper. For ESC-50, we follow the standard 5-fold cross-validation protocol defined by the dataset authors~\cite{piczak2015esc}. The dataset is pre-split into five folds; in each iteration, four folds are used for training (with a random 10\% held out as a validation set), and the remaining fold serves as the test set. The final reported accuracy is the mean across all five folds:
@@ -142,15 +149,15 @@ Figures~\ref{fig:loss} and~\ref{fig:accuracy} show the training loss and validat
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{loss_graph.png}
-    \caption{Training loss across 50 epochs for all 5 folds.}
+    \includegraphics[width=1\textwidth]{convergence_fold0.png}
+    \caption{GSC: Training loss and accuracy of the model during training}
     \label{fig:loss}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{accuracy_graph.png}
-    \caption{Validation accuracy across 50 epochs for all 5 folds.}
+    \includegraphics[width=1\textwidth]{second_photo.png}
+    \caption{ESC: Training loss and accuracy of the model during training}
     \label{fig:accuracy}
 \end{figure}
 
