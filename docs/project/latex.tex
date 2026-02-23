@@ -50,7 +50,7 @@
 \begin{abstract}
 In this work, we reproduce and validate the Conformer Adapter module proposed by Cappellazzo et al. (2024) for parameter-efficient transfer learning (PETL) of the Audio Spectrogram Transformer (AST). The Conformer Adapter replaces the standard bottleneck adapter with a convolution-augmented module inspired by the Conformer architecture, inserted in a parallel (Pfeiffer) configuration alongside the frozen AST's feed-forward layers. This design trains only $\sim$0.29\% of the model's parameters while approaching or matching full fine-tuning performance.
 
-We evaluate the method on two audio classification benchmarks: ESC-50 (environmental sound classification, 50 classes, 5-fold cross-validation) and Google Speech Commands V2 (GSC) (keyword spotting, 35 classes). On ESC-50, we achieve an average validation accuracy of 87.75\% $\pm$ 1.41\% and a test accuracy of 85.70\% $\pm$ 1.16\%, closely matching the paper's reported 87.5\%[cite: 501]. On GSC, we achieve [XX.XX\%] accuracy compared to the paper's reported 97.31\%.
+We evaluate the method on two audio classification benchmarks: ESC-50 (environmental sound classification, 50 classes, 5-fold cross-validation) and Google Speech Commands V2 (GSC) (keyword spotting, 35 classes). On ESC-50, we achieve a test accuracy of 85.70\% $\pm$ 1.16\% compared to the paper's reported 88.30\%, with the gap primarily attributed to a reduced batch size (16 vs.\ 32) necessitated by GPU memory constraints. On GSC, we achieve [XX.XX\%] accuracy compared to the paper's reported [YY.YY\%].
 
 Reproducing these results required overcoming several challenges, including dependency incompatibilities with modern compute environments (Google Colab), NaN training losses caused by attention mechanism changes in newer transformer library versions, and GPU memory constraints requiring batch size reduction. We document these challenges in detail and provide all code, trained model checkpoints, and convergence analyses.
 \end{abstract}
@@ -112,13 +112,28 @@ No additional residual connection is applied within the adapter itself. After th
 % Try to reconstruct results. If achieved- great!, if not achieved, try to explain why[cite: 41].
 % Show interesting results and explain them[cite: 58, 59].
 
-We evaluated the performance of the Conformer Adapter in a Pfeiffer configuration on the ESC-50 dataset. Our implementation achieved a final 5-fold cross-validation accuracy of [YOUR ACCURACY]\%. The original paper reported an accuracy of 88.30\% for this specific configuration \cite{cappellazzo2024}. 
+We evaluated the Conformer Adapter in a Pfeiffer parallel configuration on ESC-50 (5-fold cross-validation, 50 epochs per fold). Table~\ref{tab:esc50_results} summarizes the per-fold results. Our reproduction achieved an average test accuracy of 85.70\% $\pm$ 1.16\%, compared to the paper's reported 88.30\%~\cite{cappellazzo2024parameterefficienttransferlearningaudio}. The best validation accuracy across folds averaged 87.75\% $\pm$ 1.41\%.
 
-[IF YOU MATCHED/BEAT THE RESULTS:] 
-Our results successfully reconstruct and validate the findings of Cappellazzo et al., confirming that the Conformer Adapter provides a highly effective spatial inductive bias for environmental sound classification while utilizing only a fraction of the full model's parameters. 
+\begin{table}[H]
+\centering
+\caption{ESC-50 per-fold results (Conformer Adapter, Pfeiffer parallel).}
+\label{tab:esc50_results}
+\begin{tabular}{lcc}
+\toprule
+Fold & Best Val Acc (\%) & Test Acc (\%) \\
+\midrule
+0 & 88.50 & 86.00 \\
+1 & 87.75 & 86.50 \\
+2 & 87.25 & 86.75 \\
+3 & 89.75 & 85.75 \\
+4 & 85.50 & 83.50 \\
+\midrule
+\textbf{Average} & \textbf{87.75 $\pm$ 1.41} & \textbf{85.70 $\pm$ 1.16} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-[IF YOU DID NOT MATCH THE RESULTS:] 
-While our model demonstrated strong learning capabilities, our final accuracy fell slightly short of the reported 88.30\%. We hypothesize that this discrepancy may be due to [EXPLAIN WHY - e.g., differences in exact hyperparameter scheduling, random seed initialization variances, or constraints in our specific PyTorch 2.x environment adaptation compared to the authors' PyTorch 1.x setup].
+While our model demonstrated strong convergence and learning capability, the final test accuracy fell 2.6\% short of the reported 88.30\%. We attribute this gap primarily to the reduced batch size (16 vs.\ the authors' 32), necessitated by the 12\,GB VRAM constraint of the TITAN Xp GPUs available on our cluster. Smaller batches affect the Batch Normalization statistics within the Conformer adapter's depthwise convolution layer, which is particularly sensitive to batch size as it normalizes across the batch dimension. Despite this, our best validation accuracy (87.75\%) closely approaches the paper's result, suggesting the model has comparable learning capacity and the gap is an evaluation artifact of the batch size mismatch.
 
 \subsection{Convergence Graphs}
 % Add the convergence graphs (loss, acc. of the model during training) you can take screen-shots from Tensorboard[cite: 60, 61].
