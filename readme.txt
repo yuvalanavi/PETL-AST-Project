@@ -21,28 +21,42 @@ Prerequisites: SSH access to TAU CS SLURM cluster, Python 3.10, CUDA GPU.
   1. SSH into the cluster:
        ssh <username>@slurm-client.cs.tau.ac.il
 
-  2. One-time setup (installs venv + deps + downloads ESC-50):
+  2. One-time setup (installs venv + deps + downloads ESC-50 / GSC):
        cd <repo-dir>
        bash slurm/setup_cluster.sh
 
-  3. Full training — ESC-50 (5 folds × 50 epochs, ~1 hour per fold):
-       sbatch slurm/full_training.slurm
+  3. Full training 
+     — For ESC-50 (5 folds × 50 epochs, ~1 hour per fold): 
+          sbatch slurm/full_training_esc50.slurm
+     - For GSC (1 fold × 75 epochs):
+          sbatch slurm/full_training_gsc.slurm
 
   4. Evaluate saved checkpoints:
        python evaluation.py --data_path data --checkpoint_dir outputs --device cuda
 
   5. Generate convergence plots:
-       python utils/visualization.py --log_dir slurm/logs --output_dir results/esc50
+       - For ESC-50: python utils/visualization.py --log_dir slurm/logs --output_dir results/esc50
+       - For GSC: python utils/visualization.py --log_dir slurm/logs --output_dir results/gsc
 
 ================================================================================
 LOCAL SETUP (Optional)
 ================================================================================
-
+ESC-50:
   1. Clone:    git clone <your-repo-url> && cd PETL-AST-Project
   2. Venv:     python3.10 -m venv .venv && source .venv/bin/activate
   3. Deps:     pip install -r requirements.txt
-  4. Data:     bash download_data.sh
+  4. Data:     bash download_esc50_data.sh
   5. Train:    python main.py --dataset_name esc50 --data_path data \
+                 --method adapter --adapter_type conformer \
+                 --location pfeiffer_parallel --output_path /outputs \
+                 --save_best_ckpt True
+
+GSC:
+  1. Clone:    git clone <your-repo-url> && cd PETL-AST-Project
+  2. Venv:     python3.10 -m venv .venv && source .venv/bin/activate
+  3. Deps:     pip install -r requirements.txt
+  4. Data:     bash download_gsc_data.sh
+  5. Train:    python main.py --dataset_name GSC --data_path data \
                  --method adapter --adapter_type conformer \
                  --location pfeiffer_parallel --output_path /outputs \
                  --save_best_ckpt True
@@ -63,15 +77,16 @@ Authors' code with minimal modifications:
                          Reduced batch_size_ESC to 16 (TITAN Xp 12GB OOM at 32)
 
 Our additions:
-  - train.py                Wrapper script (stdout logging to file)
-  - evaluation.py           Standalone evaluation script (course requirement)
-  - utils/visualization.py  Convergence plot generation
-  - download_data.sh        Dataset download automation
-  - slurm/                  SLURM cluster scripts (setup, smoke test, full training)
-  - readme.txt              This documentation
-  - requirements.txt        Dependencies (authors' original versions + CUDA index)
-  - docs/challenges.md      Detailed log of all reproduction challenges
-  - samples/                Audio samples from ESC-50 train and validation sets
+  - train.py                       Wrapper script (stdout logging to file)
+  - evaluation.py                  Standalone evaluation script (course requirement)
+  - utils/visualization.py         Convergence plot generation
+  - download_data.sh               Dataset download automation
+  - slurm/                         SLURM cluster scripts (setup, smoke test, full training)
+  - readme.txt                     This documentation
+  - requirements.txt               Dependencies (authors' original versions + CUDA index)
+  - docs/challenges.md             Detailed log of all reproduction challenges
+  - samples/                       Audio samples from ESC-50 and GSC train and validation sets
+  - google_speech_commands_v2.py   Modified for lazy loading support
 
 ================================================================================
 TOOLS AND REFERENCES
