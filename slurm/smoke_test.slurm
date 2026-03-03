@@ -38,7 +38,7 @@ echo "GPU:    $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | 
 echo "CUDA:   $(python -c 'import torch; print(torch.cuda.is_available())')"
 echo ""
 
-bash download_data.sh
+bash download_esc50_data.sh
 
 python train.py \
     --data_path 'data' \

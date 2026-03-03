@@ -4,7 +4,7 @@
 # Each fold runs as a separate parallel job via SLURM job array.
 # Expected: ~5 hours per fold on TITAN Xp
 #
-# Usage:  sbatch --array=0-4 slurm/full_training.slurm
+# Usage:  sbatch --array=0-4 slurm/full_training_esc50.slurm
 # =============================================================================
 
 #SBATCH --job-name=petl-train

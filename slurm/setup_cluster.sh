@@ -62,11 +62,12 @@ python -c "import torch; print(f'  torch {torch.__version__}, CUDA: {torch.cuda.
 python -c "from transformers import ASTModel; print('  transformers OK')"
 python -c "import librosa; print('  librosa OK')"
 
-# --- 4. Download ESC-50 + prepare directories ---
-echo "[4/4] Downloading ESC-50 dataset..."
+# --- 4. Download datasets + prepare directories ---
+echo "[4/4] Downloading datasets..."
 cd "${REPO_DIR}"
 mkdir -p outputs slurm/logs
-bash download_data.sh
+bash download_esc50_data.sh
+bash download_gsc_data.sh
 
 echo ""
 echo "=== Setup complete! ==="
