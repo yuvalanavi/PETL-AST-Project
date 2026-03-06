@@ -32,7 +32,10 @@ Prerequisites: SSH access to TAU CS SLURM cluster, Python 3.10, CUDA GPU.
           sbatch slurm/full_training_gsc.slurm
 
   4. Evaluate saved checkpoints:
-       python evaluation.py --data_path data --checkpoint_dir outputs --device cuda
+     - GSC:
+          python evaluation.py --dataset 'GSC' --data_path 'data' --checkpoint 'outputs/bestmodel_fold0'
+     - ESC-50:
+          python evaluation.py --dataset 'ESC-50' --data_path data --checkpoint_dir outputs --device cuda --num_workers 4
 
   5. Generate convergence plots:
        - For ESC-50: python utils/visualization.py --log_dir slurm/logs --output_dir results/esc50
