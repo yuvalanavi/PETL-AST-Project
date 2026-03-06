@@ -31,10 +31,9 @@ echo "GPU:  $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | he
 echo ""
 
 python evaluation.py \
-    --data_path data \
-    --checkpoint_dir outputs \
-    --device cuda \
-    --num_workers 4
+    --dataset 'GSC' \
+    --data_path 'data' \
+    --checkpoint 'outputs/bestmodel_fold0'
 
 echo ""
 echo "=== Done: $(date) ==="
