@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Standalone evaluation script for PETL-AST project.
-Loads a trained model checkpoint and evaluates on the ESC-50 test fold.
+Loads a trained model checkpoint and evaluates on the test set.
 
 Usage:
-    python evaluation.py --data_path data --checkpoint outputs/bestmodel_fold0 --fold 0
-    python evaluation.py --data_path data --checkpoint_dir outputs   # evaluates all folds
+    python evaluation.py --dataset ESC-50 --data_path data --checkpoint outputs/bestmodel_fold0 --fold 0
+    python evaluation.py --dataset ESC-50 --data_path data --checkpoint_dir outputs
+    python evaluation.py --dataset GSC --data_path data --checkpoint outputs/bestmodel_fold0
 """
 
 import torch
@@ -17,18 +18,16 @@ import glob
 
 from src.AST_adapters import AST_adapter
 from dataset.esc_50 import ESC_50
+from dataset.google_speech_commands_v2 import Google_Speech_Commands_v2
 from utils.engine import eval_one_epoch
 from torch.utils.data import DataLoader
-
 
 FOLDS_TRAIN = [[1,2,3], [2,3,4], [3,4,5], [4,5,1], [5,1,2]]
 FOLDS_VALID = [[4], [5], [1], [2], [3]]
 FOLDS_TEST  = [[5], [1], [2], [3], [4]]
 
-
 def load_model(checkpoint_path, max_length, num_classes, device, reduction_rate=96,
                adapter_type='Pfeiffer', kernel_size=8):
-    """Instantiate the model and load saved weights."""
     model = AST_adapter(
         max_length=max_length,
         num_classes=num_classes,
@@ -45,9 +44,7 @@ def load_model(checkpoint_path, max_length, num_classes, device, reduction_rate=
     model = model.to(device)
     return model
 
-
-def evaluate_fold(args, fold, checkpoint_path, train_params, device):
-    """Evaluate a single fold and return test accuracy."""
+def evaluate_esc(args, fold, checkpoint_path, train_params, device):
     max_len = train_params['max_len_AST_ESC']
     num_classes = train_params['num_classes_ESC']
     batch_size = train_params['batch_size_ESC']
@@ -75,9 +72,35 @@ def evaluate_fold(args, fold, checkpoint_path, train_params, device):
     print(f"Fold {fold}: test_loss={test_loss:.4f}, test_acc={test_acc*100:.2f}%")
     return test_acc
 
+def evaluate_gsc(args, checkpoint_path, train_params, device):
+    max_len = train_params['max_len_AST_GSC']
+    num_classes = train_params['num_classes_GSC']
+    batch_size = train_params['batch_size_GSC']
+
+    test_data = Google_Speech_Commands_v2(
+        args.data_path, max_len, 'test'
+    )
+    test_loader = DataLoader(
+        test_data, batch_size=batch_size, shuffle=False,
+        num_workers=args.num_workers, pin_memory=True,
+    )
+
+    model = load_model(
+        checkpoint_path, max_len, num_classes, device,
+        reduction_rate=96,
+        adapter_type='Pfeiffer',
+        kernel_size=31,
+    )
+
+    criterion = torch.nn.CrossEntropyLoss()
+    test_loss, test_acc = eval_one_epoch(model, test_loader, device, criterion)
+
+    print(f"GSC Test: test_loss={test_loss:.4f}, test_acc={test_acc*100:.2f}%")
+    return test_acc
 
 def main():
-    parser = argparse.ArgumentParser(description='Evaluate PETL-AST on ESC-50')
+    parser = argparse.ArgumentParser(description='Evaluate PETL-AST')
+    parser.add_argument('--dataset', type=str, default='ESC-50', choices=['ESC-50', 'GSC'])
     parser.add_argument('--data_path', type=str, required=True)
     parser.add_argument('--checkpoint', type=str, default=None,
                         help='Path to a single checkpoint file')
@@ -97,26 +120,30 @@ def main():
     with open(args.hparams, 'r') as f:
         train_params = yaml.safe_load(f)
 
-    if args.checkpoint and args.fold is not None:
-        evaluate_fold(args, args.fold, args.checkpoint, train_params, device)
+    if args.dataset == 'GSC':
+        if not args.checkpoint:
+            parser.error("Provide --checkpoint for GSC evaluation")
+        evaluate_gsc(args, args.checkpoint, train_params, device)
+    
+    elif args.dataset == 'ESC-50':
+        if args.checkpoint and args.fold is not None:
+            evaluate_esc(args, args.fold, args.checkpoint, train_params, device)
+        elif args.checkpoint_dir:
+            ckpt_files = sorted(glob.glob(os.path.join(args.checkpoint_dir, 'bestmodel_fold*')))
+            if not ckpt_files:
+                print(f"No checkpoints found in {args.checkpoint_dir}")
+                return
 
-    elif args.checkpoint_dir:
-        ckpt_files = sorted(glob.glob(os.path.join(args.checkpoint_dir, 'bestmodel_fold*')))
-        if not ckpt_files:
-            print(f"No checkpoints found in {args.checkpoint_dir}")
-            return
+            accuracies = []
+            for ckpt_path in ckpt_files:
+                fold_idx = int(ckpt_path.split('fold')[-1])
+                acc = evaluate_esc(args, fold_idx, ckpt_path, train_params, device)
+                accuracies.append(acc)
 
-        accuracies = []
-        for ckpt_path in ckpt_files:
-            fold_idx = int(ckpt_path.split('fold')[-1])
-            acc = evaluate_fold(args, fold_idx, ckpt_path, train_params, device)
-            accuracies.append(acc)
-
-        print(f"\nAverage accuracy: {np.mean(accuracies)*100:.2f}%")
-        print(f"Std:              {np.std(accuracies)*100:.2f}%")
-    else:
-        parser.error("Provide either --checkpoint + --fold, or --checkpoint_dir")
-
+            print(f"\nAverage accuracy: {np.mean(accuracies)*100:.2f}%")
+            print(f"Std:              {np.std(accuracies)*100:.2f}%")
+        else:
+            parser.error("Provide either --checkpoint + --fold, or --checkpoint_dir")
 
 if __name__ == '__main__':
     main()
